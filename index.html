@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Workout Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#0f172a">
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .checkbox-custom:checked + div { background-color: #3b82f6; border-color: #3b82f6; }
+        .checkbox-custom:checked + div svg { display: block; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-md mx-auto">
+        <header class="mb-8 mt-4">
+            <h1 class="text-3xl font-bold tracking-tight">Mon Programme</h1>
+            <p class="text-slate-400 text-sm mt-1">Esthétique, Volume & Posture</p>
+        </header>
+
+        <!-- Barre de progression -->
+        <div class="mb-8">
+            <div class="flex justify-between text-sm mb-2">
+                <span class="font-medium text-slate-300">Progression Hebdo</span>
+                <span id="progress-text" class="font-bold text-blue-400">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-2.5">
+                <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <button id="notify-btn" class="w-full bg-slate-800 hover:bg-slate-700 text-sm text-slate-300 py-3 rounded-xl mb-6 transition-colors">
+            🔔 Activer les rappels
+        </button>
+
+        <div id="workout-list" class="space-y-4">
+            <!-- La liste sera générée par le JS -->
+        </div>
+        
+        <button id="reset-btn" class="w-full mt-8 text-sm text-slate-500 hover:text-slate-300 py-2">
+            Réinitialiser la semaine
+        </button>
+    </div>
+
+    <script>
+        const workouts = [
+            { id: 'mon', day: 'Lundi', title: 'Abdos (Volume)', desc: 'Relevés de jambes, Crunchs, Planche Commando' },
+            { id: 'tue', day: 'Mardi', title: 'Épaules & Biceps', desc: 'Dév. Militaire, Curl, Élév. Latérales + Face Pull' },
+            { id: 'wed', day: 'Mercredi', title: 'Abdos (Obliques)', desc: 'Russian Twists, Gainage Latéral, Bicyclette' },
+            { id: 'thu', day: 'Jeudi', title: 'Triceps & Posture', desc: 'Dips, Oiseau, Extensions + Wall Angel' },
+            { id: 'fri', day: 'Vendredi', title: 'Abdos (Bas)', desc: 'Ciseaux, Relevés genoux, Planche' },
+            { id: 'sat', day: 'Samedi', title: 'Bras & Posture', desc: 'Curl Marteau, Pompes Diamant + Face Pull' },
+            { id: 'sun', day: 'Dimanche', title: 'Récupération', desc: 'Stomach Vacuum, Étirements Pectoraux' }
+        ];
+
+        const container = document.getElementById('workout-list');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // Charger l'état depuis le stockage local
+        let state = JSON.parse(localStorage.getItem('workoutState')) || {};
+
+        function updateProgress() {
+            const completed = Object.values(state).filter(v => v).length;
+            const percentage = Math.round((completed / workouts.length) * 100);
+            progressBar.style.width = percentage + '%';
+            progressText.innerText = percentage + '%';
+            localStorage.setItem('workoutState', JSON.stringify(state));
+        }
+
+        function renderList() {
+            container.innerHTML = '';
+            workouts.forEach(workout => {
+                const isChecked = state[workout.id] ? 'checked' : '';
+                const item = document.createElement('label');
+                item.className = "flex items-start p-4 bg-slate-800/50 rounded-2xl cursor-pointer border border-slate-700/50 hover:bg-slate-800 transition-colors";
+                item.innerHTML = `
+                    <div class="relative flex items-center justify-center mt-1">
+                        <input type="checkbox" class="checkbox-custom absolute opacity-0 w-0 h-0" data-id="${workout.id}" ${isChecked}>
+                        <div class="w-6 h-6 rounded-md border-2 border-slate-500 flex items-center justify-center transition-colors">
+                            <svg class="w-4 h-4 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="ml-4 flex-1">
+                        <h3 class="font-semibold text-slate-200">${workout.day} <span class="text-blue-400 text-sm ml-2">${workout.title}</span></h3>
+                        <p class="text-slate-400 text-xs mt-1 leading-relaxed">${workout.desc}</p>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            // Ajouter les event listeners sur les checkboxes
+            document.querySelectorAll('.checkbox-custom').forEach(box => {
+                box.addEventListener('change', (e) => {
+                    state[e.target.dataset.id] = e.target.checked;
+                    updateProgress();
+                });
+            });
+        }
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            state = {};
+            renderList();
+            updateProgress();
+        });
+
+        // Gestion des Notifications
+        document.getElementById('notify-btn').addEventListener('click', async () => {
+            if (!("Notification" in window)) {
+                alert("Ce navigateur ne supporte pas les notifications desktop");
+                return;
+            }
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                new Notification("Rappels activés !", {
+                    body: "N'oublie pas tes étirements de posture (Wall Angel) aujourd'hui.",
+                    icon: "icon-192.png"
+                });
+            }
+        });
+
+        // Enregistrement du Service Worker pour la PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log('Service Worker Enregistré');
+            });
+        }
+
+        renderList();
+        updateProgress();
+    </script>
+</body>
+</html>
