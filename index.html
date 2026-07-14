@@ -3,134 +3,449 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Workout Tracker</title>
+    <title>GlowFit Pro</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#060814">
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .checkbox-custom:checked + div { background-color: #3b82f6; border-color: #3b82f6; }
-        .checkbox-custom:checked + div svg { display: block; }
+        /* Design Premium & Noise Effect */
+        body {
+            background-color: #060814;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-nav {
+            background: rgba(6, 8, 20, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Masquer la scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="p-6">
+<body class="pb-28 min-h-screen relative overflow-x-hidden">
 
-    <div class="max-w-md mx-auto">
-        <header class="mb-8 mt-4">
-            <h1 class="text-3xl font-bold tracking-tight">Mon Programme</h1>
-            <p class="text-slate-400 text-sm mt-1">Esthétique, Volume & Posture</p>
+    <!-- Lumières Dynamiques d'Arrière-plan (Glow Orbs) -->
+    <div class="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vw] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-[30%] right-[-30%] w-[90vw] h-[90vw] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none"></div>
+    <div class="absolute bottom-[10%] left-[-10%] w-[70vw] h-[70vw] bg-pink-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="max-w-md mx-auto p-5">
+        <!-- HEADER PREMIUM -->
+        <header class="flex justify-between items-center mb-6 mt-2">
+            <div>
+                <h1 class="text-2xl font-black tracking-tight text-gradient">GLOWFIT PRO</h1>
+                <p id="current-day-label" class="text-xs text-slate-400 font-medium uppercase tracking-widest mt-0.5">Lundi · Focus Volume</p>
+            </div>
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_#10b981]"></div>
         </header>
 
-        <!-- Barre de progression -->
-        <div class="mb-8">
-            <div class="flex justify-between text-sm mb-2">
-                <span class="font-medium text-slate-300">Progression Hebdo</span>
-                <span id="progress-text" class="font-bold text-blue-400">0%</span>
-            </div>
-            <div class="w-full bg-slate-800 rounded-full h-2.5">
-                <div id="progress-bar" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+        <!-- BARRES DE PROGRESSION DYNAMIQUES -->
+        <div class="glass-card rounded-2xl p-4 mb-6 relative overflow-hidden">
+            <div class="grid grid-cols-2 gap-4 relative z-10">
+                <div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+                        <span>Objectif Jour</span>
+                        <span id="day-progress-text" class="font-bold text-blue-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-950/60 rounded-full h-1.5 border border-white/5">
+                        <div id="day-progress-bar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-1.5">
+                        <span>Score Hebdo</span>
+                        <span id="week-progress-text" class="font-bold text-purple-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-950/60 rounded-full h-1.5 border border-white/5">
+                        <div id="week-progress-bar" class="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(139,92,246,0.5)]" style="width: 0%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button id="notify-btn" class="w-full bg-slate-800 hover:bg-slate-700 text-sm text-slate-300 py-3 rounded-xl mb-6 transition-colors">
-            🔔 Activer les rappels
-        </button>
-
-        <div id="workout-list" class="space-y-4">
-            <!-- La liste sera générée par le JS -->
-        </div>
-        
-        <button id="reset-btn" class="w-full mt-8 text-sm text-slate-500 hover:text-slate-300 py-2">
-            Réinitialiser la semaine
-        </button>
+        <!-- ZONE DE CONTENU DYNAMIQUE (ONGLETS) -->
+        <main id="tab-content" class="space-y-4">
+            <!-- Le contenu HTML sera injecté ici par JavaScript selon l'onglet actif -->
+        </main>
     </div>
 
+    <!-- NAVIGATION BASSE PREMIUM (GLASSMORPHISM) -->
+    <nav class="glass-nav fixed bottom-0 left-0 right-0 py-4 px-6 z-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <button onclick="switchTab('workout')" id="nav-workout" class="flex flex-col items-center gap-1 text-blue-400 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Exercices</span>
+            </button>
+            <button onclick="switchTab('nutrition')" id="nav-nutrition" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M14 12a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Nutrition</span>
+            </button>
+            <button onclick="switchTab('bilan')" id="nav-bilan" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Bilans</span>
+            </button>
+            <button onclick="switchTab('profil')" id="nav-profil" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span class="text-[10px] font-bold tracking-wider uppercase">Profil</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- LOGIQUE JAVASCRIPT DE L'APPLICATION -->
     <script>
-        const workouts = [
-            { id: 'mon', day: 'Lundi', title: 'Abdos (Volume)', desc: 'Relevés de jambes, Crunchs, Planche Commando' },
-            { id: 'tue', day: 'Mardi', title: 'Épaules & Biceps', desc: 'Dév. Militaire, Curl, Élév. Latérales + Face Pull' },
-            { id: 'wed', day: 'Mercredi', title: 'Abdos (Obliques)', desc: 'Russian Twists, Gainage Latéral, Bicyclette' },
-            { id: 'thu', day: 'Jeudi', title: 'Triceps & Posture', desc: 'Dips, Oiseau, Extensions + Wall Angel' },
-            { id: 'fri', day: 'Vendredi', title: 'Abdos (Bas)', desc: 'Ciseaux, Relevés genoux, Planche' },
-            { id: 'sat', day: 'Samedi', title: 'Bras & Posture', desc: 'Curl Marteau, Pompes Diamant + Face Pull' },
-            { id: 'sun', day: 'Dimanche', title: 'Récupération', desc: 'Stomach Vacuum, Étirements Pectoraux' }
+        // BASE DE DATA COMPLÈTE DES EXERCICES (Avec détails requis)
+        const programData = {
+            Lundi: {
+                label: "Lundi · Focus Volume Abdos",
+                exos: [
+                    { name: "Relevés de jambes au sol", reps: "3 Séries x 12 Reps", rest: "60 sec", work: "Grand droit (Bas des abdos)", desc: "Allongé sur le dos, mains sous les fesses. Monte les jambes tendues à la verticale puis redescends en 3 secondes sans toucher le sol." },
+                    { name: "Crunchs bras tendus ciel", reps: "3 Séries x 15 Reps", rest: "60 sec", work: "Haut de la sangle abdominale", desc: "Allongé au sol, bras tendus vers le plafond avec un poids léger. Décolle uniquement les omoplates en contractant volontairement en haut." },
+                    { name: "Planche Commando", reps: "3 Séries x 45 sec", rest: "60 sec", work: "Transverse & Stabilité de la taille", desc: "En position de gainage classique, passe sur la paume des mains une par une, puis redescends sur les coudes. Reste bien droit." }
+                ]
+            },
+            Mardi: {
+                label: "Mardi · Épaules, Biceps & Posture",
+                exos: [
+                    { name: "Développé Militaire", reps: "3 Séries x 12 Reps", rest: "60 sec", work: "Deltoïdes (Masse globale épaules)", desc: "Assis ou debout, pousse les haltères verticalement au-dessus de ta tête. Garde le dos droit et verrouille tes abdos." },
+                    { name: "Curl Biceps classique", reps: "3 Séries x 12 Reps", rest: "60 sec", work: "Biceps (Galbe et pic du bras)", desc: "Coudes verrouillés le long des côtes, fléchis les avant-bras. Contrôle la descente au maximum sans balancer le dos." },
+                    { name: "Élévations Latérales", reps: "4 Séries x 15 Reps", rest: "60 sec", work: "Faisceau latéral (Élargit la carrure)", desc: "Monte les haltères sur les côtés jusqu'à hauteur d'épaules. Idéal pour donner une forme en V et affiner la taille par contraste." },
+                    { name: "Face Pull (Haltères léger)", reps: "3 Séries x 15 Reps", rest: "60 sec", work: "Arrière d'épaule & Coiffe des rotateurs", desc: "Allongé sur le ventre sur un banc/lit, lève les coudes vers le haut et l'arrière en serrant les omoplates. Corrige la posture." }
+                ]
+            },
+            Mercredi: {
+                label: "Mercredi · Obliques & Lignes du bassin",
+                exos: [
+                    { name: "Russian Twists lestés", reps: "3 Séries x 20 Reps", rest: "60 sec", work: "Obliques (Lignes latérales du ventre)", desc: "Assis, jambes décollées, pivote le haut du buste de gauche à droite en touchant le sol avec un poids léger à chaque fois." },
+                    { name: "Gainage Latéral dynamique", reps: "3 Séries x 12 / côté", rest: "60 sec", work: "Taille & Verrouillage du bassin", desc: "Sur un coude de profil, descends et remonte le bassin de haut en bas sans jamais toucher le sol." },
+                    { name: "Crunchs Bicyclette", reps: "3 Séries x 45 sec", rest: "60 sec", work: "Sangle abdominale complète & Synchro", desc: "Mouvement fluide de pédalier en amenant le coude droit sur le genou gauche, puis inversement. Reste dynamique." }
+                ]
+            },
+            Jeudi: {
+                label: "Jeudi · Triceps & Anti-Courbe Gamer",
+                exos: [
+                    { name: "Dips sur chaise", reps: "3 Séries x 12-15 Reps", rest: "60 sec", work: "Triceps (60% du volume du bras)", desc: "Les mains sur le rebord d'une chaise, descends le bassin vers le sol puis repousse fermement pour tendre les bras." },
+                    { name: "L'Oiseau (Buste penché)", reps: "4 Séries x 15-20 Reps", rest: "60 sec", work: "Arrière d'épaule & Trapèzes moyens", desc: "Buste penché en avant à 45°, ouvre tes bras sur les côtés. Imagine serrer une pièce entre tes omoplates en fin de geste." },
+                    { name: "Wall Angel (Au mur)", reps: "3 Séries x 10 Reps", rest: "60 sec", work: "Ouverture cage & Redressement colonne", desc: "Dos et coudes plaqués au mur en W. Fais glisser les bras vers le haut en Y sans jamais décoller les mains ni le dos." }
+                ]
+            },
+            Vendredi: {
+                label: "Vendredi · Focus Bas du Ventre",
+                exos: [
+                    { name: "Ciseaux de jambes", reps: "3 Séries x 45 sec", rest: "60 sec", work: "Bas du grand droit & Endurance", desc: "Allongé au sol, fais des mouvements de ciseaux horizontaux très rapides avec tes jambes à 10cm du sol." },
+                    { name: "Relevés de genoux poitrine", reps: "3 Séries x 12 Reps", rest: "60 sec", work: "Bas des abdos & Fléchisseurs", desc: "Assis sur le rebord d'une chaise ou d'un lit, ramène vigoureusement tes genoux vers ta poitrine en te penchant en arrière." },
+                    { name: "Gainage Planche classique", reps: "3 Séries x 1 min", rest: "60 sec", work: "Transverse profond (Effet ventre plat)", desc: "Sur les coudes et les pointes de pieds. Aspire ton nombril fort vers la colonne et contracte les fessiers au maximum." }
+                ]
+            },
+            Samedi: {
+                label: "Samedi · Épaisseur Bras & Posture",
+                exos: [
+                    { name: "Curl Marteau", reps: "3 Séries x 12 Reps", rest: "60 sec", work: "Brachial (Épaissit le bras de profil)", desc: "Prise neutre (paumes face à face). Monte tes haltères sans tourner les poignets. Garde les coudes immobiles." },
+                    { name: "Pompes Diamant (Mains serrées)", reps: "3 Séries x Max Reps", rest: "60 sec", work: "Triceps & Intérieur des pectoraux", desc: "En position de pompes, rapproche tes index et tes pouces pour former un diamant au sol. Descends la poitrine dessus." },
+                    { name: "Face Pull aux haltères", reps: "3 Séries x 15 Reps", rest: "60 sec", work: "Rappel arrière d'épaule (Anti-dos rond)", desc: "Idem que mardi. Très important de répéter ce geste pour ouvrir la carrure après les heures d'écrans." }
+                ]
+            },
+            Dimanche: {
+                label: "Dimanche · Récupération Active & Taille Fine",
+                exos: [
+                    { name: "Stomach Vacuum", reps: "5 Séries x 30 sec", rest: "45 sec", work: "Muscle transverse profond (Resserre la taille)", desc: "Allongé sur le dos, expire tout ton air, puis aspire ton nombril le plus profondément possible sous tes côtes sans respirer." },
+                    { name: "Étirements Pectoraux", reps: "3 Séries x 30 sec", rest: "0 sec", work: "Relâchement de l'avant des épaules", desc: "Mains posées dans l'encadrement d'une porte, avance le buste vers l'avant pour étirer profondément tes pectoraux contractés." }
+                ]
+            }
+        };
+
+        // BASE DE DATA REPAS (Batch Cooking 2 jours)
+        const nutritionData = [
+            { cycle: "Jours 1 & 2", type: "Midi", plat: "Émincé de Poulet doré & Riz Basmati", details: "400g Poulet + 150g Riz (pesé cru) divisé en 2 portions. Cuisson filet d'huile d'olive." },
+            { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes Premium au Bœuf Haché grillé", details: "400g Bœuf 5% + 160g Pâtes. Ajoute un coulis de tomate pur pour le goût." },
+            { cycle: "Jours 3 & 4", type: "Midi", plat: "Salade de Pâtes au Thon & Œufs Durs", details: "2 boîtes de thon au naturel + 4 œufs durs + 160g pâtes pesées crues. Un filet d'huile de colza." },
+            { cycle: "Jours 3 & 4", type: "Soir", plat: "Riz sauté façon Tech au Bœuf & Omelette", details: "400g Bœuf haché + 3 œufs battus sautés avec 150g de riz blanc. Un filet de sauce soja." },
+            { cycle: "Jours 5 & 6", type: "Midi", plat: "Filet de Poulet tendre & Pâtes complètes", details: "400g Poulet cuit à l'étouffée + 160g pâtes. Riches en glucides lents pour l'énergie." },
+            { cycle: "Jours 5 & 6", type: "Soir", plat: "Rice Bowl au Thon fondant & Œufs mi-cuits", details: "2 boîtes de thon mélangées à 150g de riz chaud. Pose 3 œufs mollets par-dessus." },
+            { cycle: "Jour 7 (Récup)", type: "Midi & Soir", plat: "Omelette géante au Bœuf & Restes de Riz/Pâtes", details: "Utilise tes 6 derniers œufs + 200g de bœuf. Vide tes restes de riz/pâtes de la semaine pour recharger les stocks." }
         ];
 
-        const container = document.getElementById('workout-list');
-        const progressBar = document.getElementById('progress-bar');
-        const progressText = document.getElementById('progress-text');
+        // INITIALISATION DES VARIABLES ET DU LOCALSTORAGE
+        let currentTab = 'workout';
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        let currentDayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // Ajustement Dimanche = index 6
+        let currentDay = days[currentDayIndex];
 
-        // Charger l'état depuis le stockage local
-        let state = JSON.parse(localStorage.getItem('workoutState')) || {};
+        let state = JSON.parse(localStorage.getItem('glowState_v2')) || {
+            checkedExos: {}, // Format: "Jour-ExoName": true/false
+            profile: { height: "170", weight: "60", age: "24" },
+            history: [], // Stockage cumulatif des bilans hebdomadaires
+            monthlyCount: 0
+        };
 
-        function updateProgress() {
-            const completed = Object.values(state).filter(v => v).length;
-            const percentage = Math.round((completed / workouts.length) * 100);
-            progressBar.style.width = percentage + '%';
-            progressText.innerText = percentage + '%';
-            localStorage.setItem('workoutState', JSON.stringify(state));
+        function saveData() {
+            localStorage.setItem('glowState_v2', JSON.stringify(state));
+            calculateProgress();
         }
 
-        function renderList() {
-            container.innerHTML = '';
-            workouts.forEach(workout => {
-                const isChecked = state[workout.id] ? 'checked' : '';
-                const item = document.createElement('label');
-                item.className = "flex items-start p-4 bg-slate-800/50 rounded-2xl cursor-pointer border border-slate-700/50 hover:bg-slate-800 transition-colors";
-                item.innerHTML = `
-                    <div class="relative flex items-center justify-center mt-1">
-                        <input type="checkbox" class="checkbox-custom absolute opacity-0 w-0 h-0" data-id="${workout.id}" ${isChecked}>
-                        <div class="w-6 h-6 rounded-md border-2 border-slate-500 flex items-center justify-center transition-colors">
-                            <svg class="w-4 h-4 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        // CALCUL DES PROGRESSIONS DYNAMIQUES
+        function calculateProgress() {
+            // Jour
+            const currentDayExos = programData[currentDay].exos;
+            let dayChecked = 0;
+            currentDayExos.forEach(exo => {
+                if (state.checkedExos[`${currentDay}-${exo.name}`]) dayChecked++;
+            });
+            const dayPercent = currentDayExos.length ? Math.round((dayChecked / currentDayExos.length) * 100) : 0;
+            document.getElementById('day-progress-bar').style.width = dayPercent + '%';
+            document.getElementById('day-progress-text').innerText = dayPercent + '%';
+
+            // Hebdo
+            let totalWeeklyExos = 0;
+            let totalWeeklyChecked = 0;
+            days.forEach(d => {
+                programData[d].exos.forEach(exo => {
+                    totalWeeklyExos++;
+                    if (state.checkedExos[`${d}-${exo.name}`]) totalWeeklyChecked++;
+                });
+            });
+            const weekPercent = totalWeeklyExos ? Math.round((totalWeeklyChecked / totalWeeklyExos) * 100) : 0;
+            document.getElementById('week-progress-bar').style.width = weekPercent + '%';
+            document.getElementById('week-progress-text').innerText = weekPercent + '%';
+        }
+
+        // NAVIGATION ENTRE LES ONGLETS
+        function switchTab(tab) {
+            currentTab = tab;
+            // Reset styles des boutons nav
+            ['workout', 'nutrition', 'bilan', 'profil'].forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                btn.className = "flex flex-col items-center gap-1 text-slate-400 hover:text-slate-200 transition-colors";
+            });
+            document.getElementById(`nav-${tab}`).className = "flex flex-col items-center gap-1 text-blue-400 transition-colors";
+            render();
+        }
+
+        // CLÔTURE DE LA SEMAINE ET GÉNÉRATION DU TOPO CUMULATIF
+        function archiveWeek() {
+            let faits = [];
+            let manques = [];
+            
+            days.forEach(d => {
+                programData[d].exos.forEach(exo => {
+                    if (state.checkedExos[`${d}-${exo.name}`]) {
+                        faits.push(`${d}: ${exo.name}`);
+                    } else {
+                        manques.push(`${d}: ${exo.name}`);
+                    }
+                });
+            });
+
+            const topoSemaine = {
+                date: new Date().toLocaleDateString('fr-FR', {day: 'numeric', month: 'short'}),
+                faits: faits,
+                manques: manques
+            };
+
+            state.history.unshift(topoSemaine); // Ajout au début de l'historique (cumulatif)
+            state.checkedExos = {}; // Réinitialisation de la liste des tâches
+            state.monthlyCount++;
+            saveData();
+            switchTab('bilan');
+            alert("Semaine clôturée avec succès ! Le topo a été ajouté à ton historique cumulatif.");
+        }
+
+        // RENDER DE L'APPLICATION
+        function render() {
+            const content = document.getElementById('tab-content');
+            document.getElementById('current-day-label').innerText = programData[currentDay].label;
+
+            if (currentTab === 'workout') {
+                // SÉLECTEUR DE JOUR PREMIUM
+                let daySelectHtml = `<div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">`;
+                days.forEach((d, idx) => {
+                    const isSelected = d === currentDay ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-[0_0_12px_rgba(59,130,246,0.4)]' : 'bg-slate-900/40 text-slate-400 border border-white/5';
+                    daySelectHtml += `<button onclick="currentDay='${d}'; render();" class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider whitespace-nowrap transition-all ${isSelected}">${d}</button>`;
+                });
+                daySelectHtml += `</div>`;
+
+                // LISTE DES EXERCICES DU JOUR
+                let exosHtml = `<div class="space-y-4">`;
+                programData[currentDay].exos.forEach(exo => {
+                    const isChecked = state.checkedExos[`${currentDay}-${exo.name}`] ? 'checked' : '';
+                    exosHtml += `
+                        <div class="glass-card rounded-2xl p-4 transition-all hover:border-white/15 relative overflow-hidden">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1 pr-4">
+                                    <h3 class="font-bold text-slate-200 text-base leading-snug">${exo.name}</h3>
+                                    <span class="inline-block bg-blue-500/10 text-blue-400 font-semibold text-[10px] uppercase tracking-wider px-2 py-0.5 rounded mt-1.5">${exo.work}</span>
+                                </div>
+                                <label class="relative flex items-center justify-center cursor-pointer">
+                                    <input type="checkbox" onchange="state.checkedExos['${currentDay}-${exo.name}']=this.checked; saveData();" class="opacity-0 absolute w-0 h-0" ${isChecked}>
+                                    <div class="w-7 h-7 rounded-xl border-2 border-slate-600 flex items-center justify-center transition-all bg-slate-950/40 check-box-ui">
+                                        <svg class="w-4 h-4 text-white hidden check-icon" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
+                                </label>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-2.5 leading-relaxed">${exo.desc}</p>
+                            <div class="flex gap-4 border-t border-white/5 mt-3 pt-3 text-[11px] font-medium text-slate-400">
+                                <div>🏋️ <span class="text-slate-300 ml-0.5">${exo.reps}</span></div>
+                                <div>⏱️ Pause: <span class="text-slate-300 ml-0.5">${exo.rest}</span></div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="ml-4 flex-1">
-                        <h3 class="font-semibold text-slate-200">${workout.day} <span class="text-blue-400 text-sm ml-2">${workout.title}</span></h3>
-                        <p class="text-slate-400 text-xs mt-1 leading-relaxed">${workout.desc}</p>
+                    `;
+                });
+                exosHtml += `</div>`;
+
+                // BOUTON DE FIN DE SEMAINE (CTA PREMIUM GLOW)
+                const ctaHtml = `
+                    <button onclick="archiveWeek()" class="w-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:opacity-90 font-bold text-sm uppercase tracking-wider py-4 rounded-2xl mt-6 transition-all shadow-[0_4px_20px_rgba(99,102,241,0.4)] text-center block">
+                        Clôturer la Semaine & Générer le Topo 🚀
+                    </button>
+                `;
+
+                content.innerHTML = daySelectHtml + exosHtml + ctaHtml;
+
+            } else if (currentTab === 'nutrition') {
+                // ONGLET NUTRITION BATCH COOKING
+                let nutHtml = `<div class="space-y-4">
+                    <div class="glass-card rounded-2xl p-4 border-l-4 border-emerald-500 bg-emerald-500/5">
+                        <h2 class="font-bold text-sm text-emerald-400 uppercase tracking-wider">💡 Règle du Batch Cooking</h2>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Chaque plat est calibré pour durer 2 jours (Midi et Soir). Prépare-les en une seule fois pour gagner du temps et optimiser tes apports de volume.</p>
                     </div>
                 `;
-                container.appendChild(item);
-            });
+                nutritionData.forEach(nut => {
+                    nutHtml += `
+                        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-950/60 px-2 py-0.5 rounded border border-white/5">${nut.cycle}</span>
+                                <span class="text-[11px] font-bold px-2 py-0.5 rounded ${nut.type === 'Midi' ? 'bg-amber-500/10 text-amber-400' : 'bg-indigo-500/10 text-indigo-400'}">${nut.type}</span>
+                            </div>
+                            <h3 class="font-bold text-slate-200 text-base">${nut.plat}</h3>
+                            <p class="text-xs text-slate-400 mt-1 leading-relaxed">${nut.details}</p>
+                        </div>
+                    `;
+                });
+                nutHtml += `</div>`;
+                content.innerHTML = nutHtml;
 
-            // Ajouter les event listeners sur les checkboxes
-            document.querySelectorAll('.checkbox-custom').forEach(box => {
+            } else if (currentTab === 'bilan') {
+                // ONGLET BILANS & HISTORIQUE CUMULATIF
+                let bilanHtml = `<div class="space-y-4">`;
+                
+                // Statut Mensuel rapide
+                bilanHtml += `
+                    <div class="glass-card rounded-2xl p-4 bg-gradient-to-br from-purple-900/20 to-slate-900/40">
+                        <h2 class="font-bold text-sm text-purple-400 uppercase tracking-wider mb-1">Bilan du Mois</h2>
+                        <p class="text-xs text-slate-300">Semaines complétées ce mois-ci : <span class="text-base font-black text-white ml-1">${state.monthlyCount}</span></p>
+                    </div>
+                    <h2 class="font-bold text-xs uppercase tracking-widest text-slate-400 mt-4 pl-1">Historique des semaines (Cumulatif)</h2>
+                `;
+
+                if (state.history.length === 0) {
+                    bilanHtml += `<p class="text-xs text-slate-500 text-center py-8">Aucun topo généré pour l'instant. Clôture ta première semaine pour démarrer le suivi !</p>`;
+                } else {
+                    state.history.forEach((h, index) => {
+                        bilanHtml += `
+                            <div class="glass-card rounded-2xl p-4 space-y-3">
+                                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                                    <span class="font-black text-xs text-slate-200 uppercase">Semaine du ${h.date}</span>
+                                    <span class="text-[10px] text-slate-500">#${state.history.length - index}</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <span class="text-emerald-400 font-bold block mb-1">✅ Réalisé (${h.faits.length})</span>
+                                        <div class="max-h-24 overflow-y-auto no-scrollbar space-y-0.5 text-[11px] text-slate-400">
+                                            ${h.faits.map(f => `· ${f}`).join('<br>') || 'Aucun'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span class="text-rose-400 font-bold block mb-1">❌ Manqué (${h.manques.length})</span>
+                                        <div class="max-h-24 overflow-y-auto no-scrollbar space-y-0.5 text-[11px] text-slate-400">
+                                            ${h.manques.map(m => `· ${m}`).join('<br>') || 'Aucun'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                bilanHtml += `</div>`;
+                content.innerHTML = bilanHtml;
+
+            } else if (currentTab === 'profil') {
+                // ONGLET PROFIL METRICS INDIVIDUELLES
+                content.innerHTML = `
+                    <div class="glass-card rounded-2xl p-4 space-y-4">
+                        <h2 class="font-bold text-sm text-blue-400 uppercase tracking-wider border-b border-white/5 pb-2">Mes Métriques Physiques</h2>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Âge</label>
+                                <input type="number" id="p-age" value="${state.profile.age || ''}" class="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Taille (en cm)</label>
+                                <input type="number" id="p-height" value="${state.profile.height || ''}" class="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Poids (en kg)</label>
+                                <input type="number" id="p-weight" value="${state.profile.weight || ''}" class="w-full bg-slate-950/60 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500">
+                            </div>
+                            <button onclick="saveProfile()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 font-bold text-xs uppercase tracking-wider py-3 rounded-xl mt-2 transition-all shadow-[0_4px_12px_rgba(59,130,246,0.3)]">
+                                Sauvegarder les métriques
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // GESTION RE-RENDU DU COMPORTEMENT DES STYLES DES CHECKBOXES SANS CSS COMPLIQUÉ
+            document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+                const uiBox = box.nextElementSibling;
+                const icon = uiBox.querySelector('.check-icon');
+                if(box.checked) {
+                    uiBox.classList.add('bg-blue-500', 'border-blue-500');
+                    icon.classList.remove('hidden');
+                }
                 box.addEventListener('change', (e) => {
-                    state[e.target.dataset.id] = e.target.checked;
-                    updateProgress();
+                    if(e.target.checked) {
+                        uiBox.classList.add('bg-blue-500', 'border-blue-500');
+                        icon.classList.remove('hidden');
+                    } else {
+                        uiBox.classList.remove('bg-blue-500', 'border-blue-500');
+                        icon.classList.add('hidden');
+                    }
                 });
             });
+            calculateProgress();
         }
 
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            state = {};
-            renderList();
-            updateProgress();
-        });
+        // ENREGISTRER LES COMPOSANTES DU PROFIL
+        function saveProfile() {
+            state.profile.age = document.getElementById('p-age').value;
+            state.profile.height = document.getElementById('p-height').value;
+            state.profile.weight = document.getElementById('p-weight').value;
+            saveData();
+            alert("Métriques mises à jour avec succès !");
+        }
 
-        // Gestion des Notifications
-        document.getElementById('notify-btn').addEventListener('click', async () => {
-            if (!("Notification" in window)) {
-                alert("Ce navigateur ne supporte pas les notifications desktop");
-                return;
-            }
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-                new Notification("Rappels activés !", {
-                    body: "N'oublie pas tes étirements de posture (Wall Angel) aujourd'hui.",
-                    icon: "icon-192.png"
-                });
-            }
-        });
-
-        // Enregistrement du Service Worker pour la PWA
+        // REGISTRATION DU SERVICE WORKER PWA
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => {
-                console.log('Service Worker Enregistré');
-            });
+            navigator.serviceWorker.register('sw.js').then(() => console.log('PWA Ready'));
         }
 
-        renderList();
-        updateProgress();
+        // FIRST RUN
+        render();
     </script>
 </body>
 </html>
