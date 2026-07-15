@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GlowFit Pro - Étudiant & Budget</title>
+    <title>GlowFit Pro - Évolution Étudiant</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="theme-color" content="#000000">
@@ -16,13 +16,22 @@
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
         }
         
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
+        /* Contraste augmenté pour les exercices (plus visibles) */
+        .workout-card {
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.6);
             transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
         }
         
         .glass-nav {
@@ -31,6 +40,13 @@
             -webkit-backdrop-filter: blur(24px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        /* Style de barre hebdo différent (Hachuré métallique) */
+        .progress-hebdo {
+            background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem;
+            background-color: #3f3f46;
         }
 
         /* Animations UX */
@@ -52,22 +68,14 @@
             animation: popCheck 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Système de Toast (Feedback UI) */
+        /* Système de Toast */
         .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .toast-exit { animation: slideOutRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        @keyframes slideInRight {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOutRight {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 
-        /* Hitbox étendue pour Fitts' Law */
         .hitbox-label { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .hitbox-label:active .glass-card { transform: scale(0.98); }
+        .hitbox-label:active .workout-card { transform: scale(0.98); }
 
         .progress-transition { transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -95,7 +103,7 @@
         <header class="flex justify-between items-center mb-8 mt-2">
             <div>
                 <h1 class="text-3xl font-black tracking-tighter text-white drop-shadow-md">GLOWFIT</h1>
-                <p id="current-day-label" class="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em] mt-1" aria-live="polite">Chargement...</p>
+                <p id="current-day-label" class="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em] mt-1">Chargement...</p>
             </div>
             <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-white animate-pulse shadow-[0_0_15px_#ffffff]"></div>
         </header>
@@ -104,20 +112,20 @@
             <div class="grid grid-cols-2 gap-6 relative z-10">
                 <div>
                     <div class="flex justify-between text-xs font-semibold text-zinc-400 mb-2">
-                        <span class="tracking-wider uppercase text-[9px]">Aujourd'hui</span>
-                        <span id="day-progress-text" class="text-white">0%</span>
+                        <span class="tracking-wider uppercase text-[9px] font-bold text-white">Aujourd'hui</span>
+                        <span id="day-progress-text" class="text-white font-bold">0%</span>
                     </div>
-                    <div class="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden border border-white/5">
-                        <div id="day-progress-bar" class="bg-white h-full rounded-full progress-transition" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden border border-white/5">
+                        <div id="day-progress-bar" class="bg-white h-full rounded-full progress-transition shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]" style="width: 0%" role="progressbar"></div>
                     </div>
                 </div>
                 <div>
                     <div class="flex justify-between text-xs font-semibold text-zinc-400 mb-2">
-                        <span class="tracking-wider uppercase text-[9px]">Semaine</span>
-                        <span id="week-progress-text" class="text-white">0%</span>
+                        <span class="tracking-wider uppercase text-[9px] font-medium text-zinc-400">Total Hebdo</span>
+                        <span id="week-progress-text" class="text-zinc-400 font-medium">0%</span>
                     </div>
-                    <div class="w-full bg-zinc-900 rounded-full h-1.5 overflow-hidden border border-white/5">
-                        <div id="week-progress-bar" class="bg-zinc-400 h-full rounded-full progress-transition" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100"></div>
+                    <div class="w-full bg-zinc-900 rounded-full h-2.5 overflow-hidden border border-white/5">
+                        <div id="week-progress-bar" class="progress-hebdo h-full rounded-full progress-transition border-r border-white/20" style="width: 0%" role="progressbar"></div>
                     </div>
                 </div>
             </div>
@@ -187,82 +195,46 @@
             ]}
         };
 
-        // ALGORITHME DE ROTATION DES MENUS & BUDGETS ÉTUDIANTS (4 Semaines)
-        function getWeekNumber() {
-            const currentDate = new Date();
-            const startDate = new Date(currentDate.getFullYear(), 0, 1);
-            const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
-            return Math.ceil((currentDate.getDay() + 1 + days) / 7);
-        }
-
         const rotationMenus = [
             // Semaine 1 : Classique Express
             {
-                budget: {
-                    auchan: { sans: "15.10€", avec: "13.95€" },
-                    carrefour: { sans: "15.35€", avec: "14.10€" },
-                    liste: "500g Poulet surgelé, 500g Bœuf haché 15%, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis, 1 pot Crème."
-                },
-                repas: [
-                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Poulet Crème & Riz", details: "200g poulet doré + 1 brique de riz. Ajoute 1 cuillère de crème en fin de cuisson. (Temps: 12 min)" },
-                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes au Thon & Tomate", details: "80g pâtes mélangées avec 1 boîte de thon au naturel et du coulis. Rapide et calorigène. (Temps: 9 min)" },
-                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Omelette Riz Sauté", details: "Riz cuit de la veille sauté à la poêle avec 2 œufs battus. Prix dérisoire. (Temps: 7 min)" },
-                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Bœuf Haché & Pâtes", details: "200g de bœuf haché 15% cuit avec 80g de pâtes. Protéines maximales pour le volume. (Temps: 10 min)" },
-                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Poulet Moutarde & Riz", details: "200g poulet cuit blanc avec de la moutarde de base délayée dans un fond d'eau. (Temps: 12 min)" },
-                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Salade Pâtes & Œufs durs", details: "Pâtes froides, 2 œufs durs coupés en morceaux. Idéal pour manger froid et rapidement. (Temps: 10 min)" },
-                    { cycle: "Jour 7", type: "Récup", plat: "Riz/Pâtes Poêlés", details: "Rassemble tous les restes de féculents de la semaine et fais-les griller avec tes 2 derniers œufs." }
-                ]
+                budget: { auchan: { sans: "15.10€", avec: "13.95€" }, carrefour: { sans: "15.35€", avec: "14.10€" }, liste: "500g Poulet surgelé, 500g Bœuf 15%, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis, 1 pot Crème." },
+                daysMeals: {
+                    "Lundi & Mardi": { midi: "Poulet Crème & Riz (200g poulet doré, riz blanc, 1 cuillère de crème)", soir: "Pâtes au Thon Tomate (80g pâtes, 1 boîte thon, coulis tomate)" },
+                    "Mercredi & Jeudi": { midi: "Omelette Riz Sauté (Riz cuit de la veille sauté avec 2 œufs battus)", soir: "Bœuf Haché & Pâtes (200g bœuf haché 15% cuit, mélangé à 80g de pâtes)" },
+                    "Vendredi & Samedi": { midi: "Poulet Moutarde & Riz (200g poulet cuit blanc, sauce moutarde/eau, riz)", soir: "Salade Pâtes & Œufs durs (Pâtes froides, 2 œufs durs coupés en dés)" },
+                    "Dimanche (Récup)": { midi: "Omelette Vide-Frigo (Moitié des restes de riz/pâtes + 1 œuf poêlé)", soir: "Le Bol de Fin de Semaine (Reste final de féculents + ton dernier œuf)" }
+                }
             },
-            // Semaine 2 : Focus Thon & Œufs (Ultra low-cost)
+            // Semaine 2 : Focus Thon & Œufs
             {
-                budget: {
-                    auchan: { sans: "14.40€", avec: "13.50€" },
-                    carrefour: { sans: "14.65€", avec: "13.75€" },
-                    liste: "350g Poulet, 500g Bœuf, 3b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 2 briques Coulis."
-                },
-                repas: [
-                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Riz Cantonais Étudiant", details: "Riz blanc sauté avec 2 œufs brouillés et oignons hachés. Économique au maximum. (Temps: 8 min)" },
-                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Poêlée Pâtes & Bœuf", details: "200g bœuf haché cuit avec du coulis de tomate sur 80g de coquillettes. (Temps: 10 min)" },
-                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Salade Riz & Thon", details: "Riz froid mélangé avec 1 boîte de thon. Pratique à emporter dans un tupperware en cours. (Temps: 5 min)" },
-                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Poulet Tomate & Pâtes", details: "175g de filet de poulet découpé en dés fins cuit dans la sauce tomate avec tes pâtes. (Temps: 11 min)" },
-                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Pâtes Miroir aux Œufs", details: "Fais cuire tes pâtes. Dans la même poêle à côté, claque 2 œufs au plat à poser dessus. (Temps: 9 min)" },
-                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Riz chaud au Thon fondant", details: "Mélange 1 boîte de thon directement dans ton bol de riz bouillant avec une touche de sel. (Temps: 5 min)" },
-                    { cycle: "Jour 7", type: "Récup", plat: "Omelette des restes", details: "Bats tes 2 derniers œufs sur les restes de riz/pâtes de la semaine dans une poêle chaude." }
-                ]
+                budget: { auchan: { sans: "14.40€", avec: "13.50€" }, carrefour: { sans: "14.65€", avec: "13.75€" }, liste: "350g Poulet, 500g Bœuf, 3b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 2 briques Coulis." },
+                daysMeals: {
+                    "Lundi & Mardi": { midi: "Riz Cantonais Étudiant (Riz blanc sauté à la poêle avec 2 œufs brouillés)", soir: "Gratin Pâtes Bolognaise (200g bœuf haché éco cuit avec du coulis sur pâtes)" },
+                    "Mercredi & Jeudi": { midi: "Salade Riz & Thon (150g de riz froid mélangé avec 1 boîte de thon)", soir: "Poulet Ketchup Sésame (175g poulet enrobé de ketchup/sauce soja + pâtes)" },
+                    "Vendredi & Samedi": { midi: "Pâtes Miroir aux Œufs (80g de pâtes chaudes surmontées de 2 œufs au plat)", soir: "Riz chaud au Thon fondant (1 boîte thon mélangée à chaud dans le riz)" },
+                    "Dimanche (Récup)": { midi: "Poêlée anti-gâchis (Fonds de riz restants sautés à sec)", soir: "Omelette Coquillettes (Tes 2 derniers œufs coulés sur tes restes de pâtes)" }
+                }
             },
             // Semaine 3 : Bœuf & Poulet Épicés
             {
-                budget: {
-                    auchan: { sans: "15.50€", avec: "14.30€" },
-                    carrefour: { sans: "15.80€", avec: "14.50€" },
-                    liste: "600g Poulet, 600g Bœuf haché, 2b Thon, 10 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis."
-                },
-                repas: [
-                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Bœuf Épicé Express & Riz", details: "200g de bœuf haché cuit avec du paprika ou poivre éco sur un lit de riz blanc. (Temps: 10 min)" },
-                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes Poulet Paprika", details: "200g de poulet sauté en lanières fines avec tes pâtes. Cuisson très rapide. (Temps: 11 min)" },
-                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Riz & Œufs au plat coulants", details: "Riz chaud surmonté de 2 œufs au plat. Le jaune sert de sauce naturelle zéro frais. (Temps: 8 min)" },
-                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Pâtes froides au Thon", details: "Mélange ton thon avec tes pâtes froides cuites le matin pour gagner du temps. (Temps: 5 min)" },
-                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Poulet grillé & Riz blanc", details: "200g de filet de poulet saisi à feu vif à la poêle avec ton riz. Basique et efficace. (Temps: 12 min)" },
-                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Bœuf Tomate & Coquillettes", details: "200g de bœuf haché mijoté 5 min dans le coulis de tomate sur tes pâtes. (Temps: 10 min)" },
-                    { cycle: "Jour 7", type: "Récup", plat: "Le Bol de Fin de Mois", details: "Mélange le reste de bœuf/poulet avec tes féculents restants et tes 2 derniers œufs." }
-                ]
+                budget: { auchan: { sans: "15.50€", avec: "14.30€" }, carrefour: { sans: "15.80€", avec: "14.50€" }, liste: "600g Poulet, 600g Bœuf haché, 2b Thon, 10 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis." },
+                daysMeals: {
+                    "Lundi & Mardi": { midi: "Bœuf Épicé & Riz (200g bœuf haché cuit aux épices de base sur riz)", soir: "Pâtes Poulet Paprika (200g poulet sauté en lanières fines, pâtes)" },
+                    "Mercredi & Jeudi": { midi: "Riz & Œufs au plat (Riz blanc chaud surmonté de 2 œufs coulants)", soir: "Pâtes froides de la Fac au Thon (Pâtes mélangées froides avec 1 boîte de thon)" },
+                    "Vendredi & Samedi": { midi: "Poulet grillé & Riz blanc (200g blanc de poulet saisi à vif poêle, riz)", soir: "Bœuf Tomate & Coquillettes (200g bœuf haché mijoté dans du coulis, pâtes)" },
+                    "Dimanche (Récup)": { midi: "Riz sauté aux restes de viandes (Fonds de bœuf/poulet coupés fins)", soir: "L'Omelette Finale (Tes 2 derniers œufs battus sur les derniers féculents)" }
+                }
             },
-            // Semaine 4 : Le Mix Éco Pratique
+            // Semaine 4 : Mix Éco Pratique
             {
-                budget: {
-                    auchan: { sans: "14.20€", avec: "13.40€" },
-                    carrefour: { sans: "14.45€", avec: "13.60€" },
-                    liste: "400g Poulet, 400g Bœuf, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis."
-                },
-                repas: [
-                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Poulet Doré & Riz", details: "200g poulet coupé petit pour cuire en moins de 6 min. Sers avec ton riz. (Temps: 9 min)" },
-                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes & Rillettes de Thon", details: "Émiette ton thon avec un mini filet d'huile et mélange activement aux pâtes. (Temps: 8 min)" },
-                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Boulettes de Bœuf & Riz", details: "Façonne 200g de bœuf en petites boulettes. Cuis à la poêle et sers sur riz. (Temps: 10 min)" },
-                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Pâtes & Œufs Brouillés à chaud", details: "Fais cuire tes pâtes, vide l'eau, casse 2 œufs directement dedans à feu doux. (Temps: 9 min)" },
-                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Riz Froid au Poulet", details: "Mélange de riz et de dés de poulet cuits à l'avance. Parfait pour la fac. (Temps: 5 min)" },
-                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Bœuf Haché Bolognaise", details: "200g bœuf haché cuit dans le coulis de tomate étalé sur tes pâtes chaudes. (Temps: 10 min)" },
-                    { cycle: "Jour 7", type: "Récup", plat: "Omelette Générique", details: "Casse tes 2 derniers œufs sur le fond de ton frigo (riz/pâtes) pour clore la semaine." }
-                ]
+                budget: { auchan: { sans: "14.20€", avec: "13.40€" }, carrefour: { sans: "14.45€", avec: "13.60€" }, liste: "400g Poulet, 400g Bœuf, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis." },
+                daysMeals: {
+                    "Lundi & Mardi": { midi: "Poulet Doré & Riz (200g poulet coupé en dés pour cuire vite, riz)", soir: "Pâtes & Rillettes de Thon (1 boîte thon écrasée à la fourchette avec pâtes)" },
+                    "Mercredi & Jeudi": { midi: "Boulettes de Bœuf & Riz (200g bœuf haché façonné en boulettes poêlées)", soir: "Pâtes aux Œufs Brouillés (Casse 2 œufs dans tes pâtes égouttées à chaud)" },
+                    "Vendredi & Samedi": { midi: "Riz Froid au Poulet (150g riz mélangé à tes morceaux de poulet cuits)", soir: "Bœuf Haché Bolognaise (200g bœuf haché cuit étalé sur coquillettes au coulis)" },
+                    "Dimanche (Récup)": { midi: "Bol du Frigo (Riz blanc restant réchauffé au micro-ondes)", soir: "Omelette Éco Générique (2 œufs battus coulés sur le reste des pâtes)" }
+                }
             }
         ];
 
@@ -271,9 +243,9 @@
         let currentDayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
         let currentDay = days[currentDayIndex];
 
-        let state = JSON.parse(localStorage.getItem('glowState_UX')) || {
+        let state = JSON.parse(localStorage.getItem('glowState_UXv4')) || {
             checkedExos: {},
-            profile: { height: "", weight: "", age: "" },
+            profile: { height: "170", weight: "65", age: "22" },
             history: [],
             monthlyCount: 0
         };
@@ -288,7 +260,6 @@
             toast.innerHTML = `<span>${icon}</span> ${message}`;
             
             container.appendChild(toast);
-            
             setTimeout(() => {
                 toast.classList.replace('toast-enter', 'toast-exit');
                 setTimeout(() => toast.remove(), 300);
@@ -300,14 +271,10 @@
             state.checkedExos[key] = !state.checkedExos[key];
             saveData();
             render();
-            
-            if(document.getElementById('day-progress-text').innerText === '100%') {
-                if(state.checkedExos[key]) showToast("Journée accomplie !");
-            }
         }
 
         function saveData() {
-            localStorage.setItem('glowState_UX', JSON.stringify(state));
+            localStorage.setItem('glowState_UXv4', JSON.stringify(state));
             calculateProgress();
         }
 
@@ -319,18 +286,16 @@
             });
             
             const dayPercent = currentDayExos.length === 0 ? 0 : Math.round((dayChecked / currentDayExos.length) * 100);
-            const dayBar = document.getElementById('day-progress-bar');
-            
-            dayBar.style.width = dayPercent + '%';
+            document.getElementById('day-progress-bar').style.width = dayPercent + '%';
             document.getElementById('day-progress-text').innerText = dayPercent + '%';
 
             const statusDot = document.getElementById('status-dot');
             if(dayPercent === 100) {
-                dayBar.style.boxShadow = '0 0 15px rgba(255,255,255,0.8)';
+                document.getElementById('day-progress-bar').style.boxShadow = '0 0 15px rgba(255,255,255,0.8)';
                 statusDot.classList.replace('bg-white', 'bg-emerald-400');
                 statusDot.style.boxShadow = '0 0 15px #34d399';
             } else {
-                dayBar.style.boxShadow = 'none';
+                document.getElementById('day-progress-bar').style.boxShadow = 'none';
                 statusDot.classList.replace('bg-emerald-400', 'bg-white');
                 statusDot.style.boxShadow = '0 0 15px #ffffff';
             }
@@ -344,17 +309,14 @@
             });
             
             const weekPercent = totalWeeklyExos ? Math.round((totalWeeklyChecked / totalWeeklyExos) * 100) : 0;
-            const weekBar = document.getElementById('week-progress-bar');
-            weekBar.style.width = weekPercent + '%';
+            document.getElementById('week-progress-bar').style.width = weekPercent + '%';
             document.getElementById('week-progress-text').innerText = weekPercent + '%';
-            weekBar.style.boxShadow = weekPercent === 100 ? '0 0 15px rgba(161,161,170,0.8)' : 'none';
         }
 
         function switchTab(tab) {
             currentTab = tab;
             ['workout', 'nutrition', 'bilan', 'profil'].forEach(t => {
-                const btn = document.getElementById(`nav-${t}`);
-                btn.className = "flex flex-col items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors p-2";
+                document.getElementById(`nav-${t}`).className = "flex flex-col items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors p-2";
             });
             document.getElementById(`nav-${tab}`).className = "flex flex-col items-center gap-1.5 text-white transition-colors p-2";
             render();
@@ -408,25 +370,26 @@
                     const isChecked = state.checkedExos[`${currentDay}-${exo.name}`];
                     const delay = index * 0.1; 
                     
+                    // Utilisation de la classe .workout-card (Bordure plus nette + fond plus opaque)
                     exosHtml += `
                         <label class="hitbox-label block animate-item" style="animation-delay: ${delay}s">
-                            <div class="glass-card rounded-3xl p-5">
+                            <div class="workout-card rounded-3xl p-5">
                                 <div class="flex items-start justify-between">
                                     <div class="flex-1 pr-4">
                                         <h3 class="font-bold text-white text-lg tracking-tight">${exo.name}</h3>
-                                        <span class="inline-block bg-white/10 text-zinc-300 font-semibold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mt-2 border border-white/5">${exo.work}</span>
+                                        <span class="inline-block bg-white/10 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mt-2 border border-white/10">${exo.work}</span>
                                     </div>
                                     <div class="relative flex items-center justify-center p-1">
-                                        <input type="checkbox" onchange="toggleCheck('${exo.name}')" class="opacity-0 absolute w-0 h-0" ${isChecked ? 'checked' : ''} aria-label="Marquer ${exo.name} comme fait">
-                                        <div class="w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${isChecked ? 'bg-white border-white' : 'bg-zinc-900 border-zinc-600'}">
-                                            <svg class="w-4 h-4 text-black check-icon ${isChecked ? 'active hidden' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                                        <input type="checkbox" onchange="toggleCheck('${exo.name}')" class="opacity-0 absolute w-0 h-0" ${isChecked ? 'checked' : ''}>
+                                        <div class="w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${isChecked ? 'bg-white border-white' : 'bg-zinc-900 border-zinc-500'}">
+                                            <svg class="w-4 h-4 text-black check-icon ${isChecked ? 'active' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
                                         </div>
                                     </div>
                                 </div>
-                                <p class="text-xs text-zinc-400 mt-4 leading-relaxed">${exo.desc}</p>
-                                <div class="flex gap-5 mt-4 pt-4 border-t border-white/5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                                    <div><span class="text-white">${exo.reps}</span></div>
-                                    <div>Pause: <span class="text-white">${exo.rest}</span></div>
+                                <p class="text-xs text-zinc-300 mt-4 leading-relaxed">${exo.desc}</p>
+                                <div class="flex gap-5 mt-4 pt-4 border-t border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                                    <div>Séries: <span class="text-white">${exo.reps}</span></div>
+                                    <div>Repos: <span class="text-white">${exo.rest}</span></div>
                                 </div>
                             </div>
                         </label>
@@ -435,61 +398,56 @@
                 exosHtml += `</div>`;
 
                 const ctaHtml = `
-                    <button onclick="openModal()" aria-label="Clôturer la semaine" class="w-full bg-white hover:scale-[1.02] active:scale-95 text-black font-black text-xs uppercase tracking-widest py-5 rounded-3xl mt-4 mb-4 transition-all duration-300 shadow-[0_10px_30px_rgba(255,255,255,0.15)] flex justify-center items-center gap-2">
+                    <button onclick="openModal()" class="w-full bg-white hover:scale-[1.02] active:scale-95 text-black font-black text-xs uppercase tracking-widest py-5 rounded-3xl mt-4 mb-4 transition-all duration-300 shadow-[0_10px_30px_rgba(255,255,255,0.15)] flex justify-center items-center gap-2">
                         Clôturer la Semaine
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
                     </button>
                 `;
-
                 content.innerHTML = daySelectHtml + exosHtml + ctaHtml;
-
-                document.querySelectorAll('input[type="checkbox"]').forEach(box => {
-                    const icon = box.nextElementSibling.querySelector('.check-icon');
-                    if(box.checked) icon.classList.remove('hidden');
-                });
 
             } else if (currentTab === 'nutrition') {
                 const weekIndex = getWeekNumber() % 4;
-                const currentData = rotationMenus[weekIndex];
+                const menuSemaine = rotationMenus[weekIndex];
 
-                // INJECTION DU COMPARATEUR DE PRIX ÉTUDIANT ULTRA-CIBLÉ
                 let nutHtml = `<div class="space-y-4 pb-4 animate-item">
-                    <div class="glass-card rounded-3xl p-5 border-white/10 bg-gradient-to-br from-zinc-950 to-black">
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_#ffffff]"></span>
-                            <h2 class="font-black text-white text-xs uppercase tracking-widest">Budget Semaine ${weekIndex + 1} (Cible ~15€)</h2>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4 text-[11px] mb-4 border-b border-white/5 pb-3">
+                    <div class="glass-card rounded-3xl p-5 bg-gradient-to-br from-zinc-950 to-black border-white/10">
+                        <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-500 block mb-1">PROGRAMME DIÈTE</span>
+                        <h2 class="font-black text-white text-base">Menu Étudiant (Semaine ${weekIndex + 1}/4)</h2>
+                        <div class="grid grid-cols-2 gap-4 text-[10px] mt-3 pt-3 border-t border-white/5">
                             <div>
-                                <span class="text-zinc-400 font-bold block mb-1">🏪 AUCHAN BOULIAC</span>
-                                <p class="text-zinc-200">Sans Carte: <span class="text-white font-bold">${currentData.budget.auchan.sans}</span></p>
-                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${currentData.budget.auchan.avec}</span></p>
+                                <span class="text-zinc-400 font-bold block mb-0.5">🏪 CARREFOUR RIVES D'ARCINS</span>
+                                <p class="text-zinc-300">Sans Carte: <span class="text-white font-bold">${menuSemaine.budget.carrefour.sans}</span></p>
+                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${menuSemaine.budget.carrefour.avec}</span></p>
                             </div>
                             <div>
-                                <span class="text-zinc-400 font-bold block mb-1">🏪 CARREFOUR RIVES D'ARCINS</span>
-                                <p class="text-zinc-200">Sans Carte: <span class="text-white font-bold">${currentData.budget.carrefour.sans}</span></p>
-                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${currentData.budget.carrefour.avec}</span></p>
+                                <span class="text-zinc-400 font-bold block mb-0.5">🏪 AUCHAN BOULIAC</span>
+                                <p class="text-zinc-300">Sans Carte: <span class="text-white font-bold">${menuSemaine.budget.auchan.sans}</span></p>
+                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${menuSemaine.budget.auchan.avec}</span></p>
                             </div>
-                        </div>
-
-                        <div>
-                            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">Panier requis (Gamme Éco) :</span>
-                            <p class="text-xs text-zinc-300 italic leading-relaxed">${currentData.budget.liste}</p>
                         </div>
                     </div>
                 `;
 
-                // INJECTION DES REPAS BATCH COOKING
-                currentData.repas.forEach(nut => {
+                // BLOCS PAR JOUR (MIDI + SOIR RÉUNIS DANS LA MÊME CARTE)
+                Object.keys(menuSemaine.daysMeals).forEach(dayLabel => {
+                    const meals = menuSemaine.daysMeals[dayLabel];
                     nutHtml += `
-                        <div class="glass-card rounded-3xl p-5">
-                            <div class="flex justify-between items-center mb-3">
-                                <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">${nut.cycle}</span>
-                                <span class="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded border border-white/10 ${nut.type === 'Midi' ? 'bg-zinc-800 text-white' : 'bg-black text-zinc-300'}">${nut.type}</span>
+                        <div class="glass-card rounded-3xl p-5 border-white/10">
+                            <div class="border-b border-white/10 pb-2.5 mb-3 flex justify-between items-center">
+                                <h3 class="font-black text-white text-sm tracking-wide uppercase">${dayLabel}</h3>
+                                <span class="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Batch Cooking</span>
                             </div>
-                            <h3 class="font-bold text-white text-base tracking-tight">${nut.plat}</h3>
-                            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">${nut.details}</p>
+                            <div class="space-y-3">
+                                <div>
+                                    <span class="inline-block bg-zinc-800 text-white font-bold text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md mb-1">☀️ Midi</span>
+                                    <p class="text-sm font-bold text-zinc-200">${meals.midi.split(' (')[0]}</p>
+                                    <p class="text-xs text-zinc-400 mt-0.5">${meals.midi.includes(' (') ? meals.midi.split(' (')[1].replace(')', '') : ''}</p>
+                                </div>
+                                <div class="pt-2.5 border-t border-white/5">
+                                    <span class="inline-block bg-black text-zinc-300 border border-white/10 font-bold text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md mb-1">🌙 Soir</span>
+                                    <p class="text-sm font-bold text-zinc-200">${meals.soir.split(' (')[0]}</p>
+                                    <p class="text-xs text-zinc-400 mt-0.5">${meals.soir.includes(' (') ? meals.soir.split(' (')[1].replace(')', '') : ''}</p>
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
@@ -513,7 +471,6 @@
                                 <svg class="w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             </div>
                             <p class="text-sm font-bold text-white mb-2">Aucun historique</p>
-                            <p class="text-xs text-zinc-500 leading-relaxed">Termine ta première semaine d'entraînement et clique sur "Clôturer" pour voir tes statistiques apparaître ici.</p>
                         </div>
                     `;
                 } else {
@@ -538,29 +495,48 @@
                         `;
                     });
                 }
-                bilanHtml += `</div>`;
-                content.innerHTML = bilanHtml;
+                content.innerHTML = bilanHtml + `</div>`;
 
             } else if (currentTab === 'profil') {
                 content.innerHTML = `
-                    <div class="glass-card rounded-3xl p-6 space-y-5 animate-item">
-                        <h2 class="font-bold text-[10px] text-zinc-400 uppercase tracking-widest border-b border-white/5 pb-3">Métriques Corporelles</h2>
-                        <div class="space-y-4">
-                            <div>
-                                <label for="p-age" class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Âge</label>
-                                <input type="number" id="p-age" min="1" max="120" value="${state.profile.age}" placeholder="Ex: 24" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors" required>
+                    <div class="space-y-4 pb-4 animate-item">
+                        <div class="glass-card rounded-3xl p-6 space-y-4">
+                            <h2 class="font-bold text-[10px] text-zinc-400 uppercase tracking-widest border-b border-white/5 pb-3">Modifier mes données</h2>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Âge</label>
+                                    <input type="number" id="p-age" value="${state.profile.age}" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Taille (cm)</label>
+                                    <input type="number" id="p-height" value="${state.profile.height}" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Poids (kg)</label>
+                                    <input type="number" id="p-weight" value="${state.profile.weight}" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors">
+                                </div>
+                                <button onclick="saveProfile()" class="w-full bg-white text-black font-black text-xs uppercase tracking-widest py-4 rounded-2xl mt-2 transition-all hover:scale-[1.02]">
+                                    Sauvegarder
+                                </button>
                             </div>
-                            <div>
-                                <label for="p-height" class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Taille (cm)</label>
-                                <input type="number" id="p-height" min="100" max="250" value="${state.profile.height}" placeholder="Ex: 170" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors" required>
+                        </div>
+
+                        <div class="glass-card rounded-3xl p-6 bg-gradient-to-br from-zinc-950 to-black border-white/10">
+                            <h2 class="font-bold text-[10px] text-zinc-400 uppercase tracking-widest border-b border-white/5 pb-3 mb-4">Fiche Physique Actuelle</h2>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div class="bg-zinc-900/50 p-3 rounded-2xl border border-white/5">
+                                    <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Âge</span>
+                                    <span class="text-xl font-black text-white mt-1 block">${state.profile.age || '--'} <span class="text-xs font-normal text-zinc-400">ans</span></span>
+                                </div>
+                                <div class="bg-zinc-900/50 p-3 rounded-2xl border border-white/5">
+                                    <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Taille</span>
+                                    <span class="text-xl font-black text-white mt-1 block">${state.profile.height || '--'} <span class="text-xs font-normal text-zinc-400">cm</span></span>
+                                </div>
+                                <div class="bg-zinc-900/50 p-3 rounded-2xl border border-white/5">
+                                    <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block">Poids</span>
+                                    <span class="text-xl font-black text-white mt-1 block">${state.profile.weight || '--'} <span class="text-xs font-normal text-zinc-400">kg</span></span>
+                                </div>
                             </div>
-                            <div>
-                                <label for="p-weight" class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Poids (kg)</label>
-                                <input type="number" id="p-weight" min="30" max="300" value="${state.profile.weight}" placeholder="Ex: 60" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors" required>
-                            </div>
-                            <button onclick="saveProfile()" class="w-full bg-white text-black font-black text-xs uppercase tracking-widest py-4 rounded-2xl mt-4 hover:scale-[1.02] active:scale-95 transition-transform shadow-[0_5px_20px_rgba(255,255,255,0.1)]">
-                                Sauvegarder
-                            </button>
                         </div>
                     </div>
                 `;
@@ -580,6 +556,7 @@
 
             state.profile = { age, height, weight };
             saveData();
+            render(); // Re-render immédiat pour mettre à jour le bloc récapitulatif
             showToast("Profil mis à jour");
         }
 
