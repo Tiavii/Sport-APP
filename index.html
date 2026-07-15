@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GlowFit Pro - UX Premium</title>
+    <title>GlowFit Pro - Étudiant & Budget</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="theme-color" content="#000000">
@@ -30,7 +30,7 @@
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-bottom: env(safe-area-inset-bottom); /* Adaptation Safe Area iOS */
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* Animations UX */
@@ -76,14 +76,12 @@
 </head>
 <body class="pb-32 min-h-screen relative overflow-x-hidden selection:bg-white selection:text-black">
 
-    <!-- Container pour les Toasts Notifications -->
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
 
-    <!-- Modale de Confirmation (Prévention d'erreur) -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
         <div class="glass-card rounded-3xl p-6 w-full max-w-sm border-white/15">
             <h3 class="font-bold text-white text-lg mb-2">Clôturer la semaine ?</h3>
-            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">Cela va archiver tes performances actuelles dans l'historique et réinitialiser tes tâches pour la semaine prochaine. Cette action est irréversible.</p>
+            <p class="text-xs text-zinc-400 mb-6 leading-relaxed">Cela va archiver tes performances et réinitialiser tes tâches pour la semaine prochaine.</p>
             <div class="flex gap-3">
                 <button onclick="closeModal()" class="flex-1 py-3 rounded-2xl bg-zinc-900 text-zinc-300 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors">Annuler</button>
                 <button onclick="confirmArchive()" class="flex-1 py-3 rounded-2xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:scale-[1.02] transition-transform">Confirmer</button>
@@ -91,11 +89,9 @@
         </div>
     </div>
 
-    <!-- Lumières Dynamiques B&W -->
     <div class="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vw] bg-white/5 rounded-full blur-[120px] pointer-events-none"></div>
 
     <div class="max-w-md mx-auto p-5 relative z-10">
-        <!-- HEADER -->
         <header class="flex justify-between items-center mb-8 mt-2">
             <div>
                 <h1 class="text-3xl font-black tracking-tighter text-white drop-shadow-md">GLOWFIT</h1>
@@ -104,7 +100,6 @@
             <div id="status-dot" class="w-2.5 h-2.5 rounded-full bg-white animate-pulse shadow-[0_0_15px_#ffffff]"></div>
         </header>
 
-        <!-- BARRES DE PROGRESSION -->
         <div class="glass-card rounded-3xl p-5 mb-8 relative overflow-hidden">
             <div class="grid grid-cols-2 gap-6 relative z-10">
                 <div>
@@ -128,13 +123,10 @@
             </div>
         </div>
 
-        <!-- ZONE DE CONTENU -->
         <main id="tab-content" class="space-y-4" aria-live="polite">
-            <!-- Injecté par JS -->
-        </main>
+            </main>
     </div>
 
-    <!-- NAVIGATION BASSE -->
     <nav class="glass-nav fixed bottom-0 left-0 right-0 pt-4 px-6 z-50">
         <div class="max-w-md mx-auto flex justify-between items-center pb-2">
             <button onclick="switchTab('workout')" id="nav-workout" aria-label="Exercices" class="flex flex-col items-center gap-1.5 text-white transition-colors p-2">
@@ -156,19 +148,18 @@
         </div>
     </nav>
 
-    <!-- LOGIQUE JS -->
     <script>
         const programData = {
             Lundi: { label: "Lundi · Focus Volume Abdos", exos: [
                 { name: "Relevés de jambes au sol", reps: "3x12 Reps", rest: "60s", work: "Bas des abdos", desc: "Allongé sur le dos, monte les jambes tendues à la verticale puis redescends en 3 secondes." },
-                { name: "Crunchs bras tendus ciel", reps: "3x15 Reps", rest: "60s", work: "Haut abdos", desc: "Bras tendus vers le plafond avec un poids. Décolle uniquement les omoplates." },
+                { name: "Crunchs bras tendus", reps: "3x15 Reps", rest: "60s", work: "Haut abdos", desc: "Bras tendus vers le plafond. Décolle uniquement les omoplates." },
                 { name: "Planche Commando", reps: "3x45 sec", rest: "60s", work: "Stabilité globale", desc: "Passe sur la paume des mains une par une, puis redescends sur les coudes." }
             ]},
             Mardi: { label: "Mardi · Épaules, Biceps & Posture", exos: [
-                { name: "Développé Militaire", reps: "3x12 Reps", rest: "60s", work: "Deltoïdes", desc: "Pousse les haltères verticalement au-dessus de ta tête." },
-                { name: "Curl Biceps classique", reps: "3x12 Reps", rest: "60s", work: "Galbe Biceps", desc: "Coudes verrouillés, contrôle la descente." },
-                { name: "Élévations Latérales", reps: "4x15 Reps", rest: "60s", work: "Largeur Épaules", desc: "Monte les haltères sur les côtés jusqu'à hauteur d'épaules." },
-                { name: "Face Pull (Haltères)", reps: "3x15 Reps", rest: "60s", work: "Arrière d'épaule", desc: "Allongé sur le ventre, lève les coudes vers le haut en serrant les omoplates." }
+                { name: "Développé Militaire", reps: "3x12 Reps", rest: "60s", work: "Deltoïdes", desc: "Pousse des poids au-dessus de ta tête." },
+                { name: "Curl Biceps", reps: "3x12 Reps", rest: "60s", work: "Galbe Biceps", desc: "Coudes verrouillés, contrôle la descente." },
+                { name: "Élévations Latérales", reps: "4x15 Reps", rest: "60s", work: "Largeur Épaules", desc: "Monte les poids sur les côtés jusqu'à hauteur d'épaules." },
+                { name: "Face Pull", reps: "3x15 Reps", rest: "60s", work: "Arrière d'épaule", desc: "Allongé sur le ventre, lève les coudes vers le haut en serrant les omoplates." }
             ]},
             Mercredi: { label: "Mercredi · Obliques & Lignes", exos: [
                 { name: "Russian Twists", reps: "3x20 Reps", rest: "60s", work: "Obliques", desc: "Pivote le haut du buste de gauche à droite." },
@@ -196,14 +187,83 @@
             ]}
         };
 
-        const nutritionData = [
-            { cycle: "Jours 1 & 2", type: "Midi", plat: "Poulet doré & Riz Basmati", details: "400g Poulet + 150g Riz div en 2." },
-            { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes au Bœuf Haché", details: "400g Bœuf 5% + 160g Pâtes + Coulis." },
-            { cycle: "Jours 3 & 4", type: "Midi", plat: "Salade Pâtes, Thon & Œufs", details: "2 boîtes thon + 4 œufs + 160g pâtes." },
-            { cycle: "Jours 3 & 4", type: "Soir", plat: "Riz sauté Bœuf & Omelette", details: "400g Bœuf + 3 œufs + 150g riz." },
-            { cycle: "Jours 5 & 6", type: "Midi", plat: "Poulet tendre & Pâtes complètes", details: "400g Poulet + 160g pâtes." },
-            { cycle: "Jours 5 & 6", type: "Soir", plat: "Rice Bowl Thon & Œufs mollets", details: "2 boîtes thon + 3 œufs + 150g riz." },
-            { cycle: "Jour 7", type: "Midi/Soir", plat: "Omelette géante & Restes", details: "Vide les frigos, 6 œufs + viandes." }
+        // ALGORITHME DE ROTATION DES MENUS & BUDGETS ÉTUDIANTS (4 Semaines)
+        function getWeekNumber() {
+            const currentDate = new Date();
+            const startDate = new Date(currentDate.getFullYear(), 0, 1);
+            const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
+            return Math.ceil((currentDate.getDay() + 1 + days) / 7);
+        }
+
+        const rotationMenus = [
+            // Semaine 1 : Classique Express
+            {
+                budget: {
+                    auchan: { sans: "15.10€", avec: "13.95€" },
+                    carrefour: { sans: "15.35€", avec: "14.10€" },
+                    liste: "500g Poulet surgelé, 500g Bœuf haché 15%, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis, 1 pot Crème."
+                },
+                repas: [
+                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Poulet Crème & Riz", details: "200g poulet doré + 1 brique de riz. Ajoute 1 cuillère de crème en fin de cuisson. (Temps: 12 min)" },
+                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes au Thon & Tomate", details: "80g pâtes mélangées avec 1 boîte de thon au naturel et du coulis. Rapide et calorigène. (Temps: 9 min)" },
+                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Omelette Riz Sauté", details: "Riz cuit de la veille sauté à la poêle avec 2 œufs battus. Prix dérisoire. (Temps: 7 min)" },
+                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Bœuf Haché & Pâtes", details: "200g de bœuf haché 15% cuit avec 80g de pâtes. Protéines maximales pour le volume. (Temps: 10 min)" },
+                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Poulet Moutarde & Riz", details: "200g poulet cuit blanc avec de la moutarde de base délayée dans un fond d'eau. (Temps: 12 min)" },
+                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Salade Pâtes & Œufs durs", details: "Pâtes froides, 2 œufs durs coupés en morceaux. Idéal pour manger froid et rapidement. (Temps: 10 min)" },
+                    { cycle: "Jour 7", type: "Récup", plat: "Riz/Pâtes Poêlés", details: "Rassemble tous les restes de féculents de la semaine et fais-les griller avec tes 2 derniers œufs." }
+                ]
+            },
+            // Semaine 2 : Focus Thon & Œufs (Ultra low-cost)
+            {
+                budget: {
+                    auchan: { sans: "14.40€", avec: "13.50€" },
+                    carrefour: { sans: "14.65€", avec: "13.75€" },
+                    liste: "350g Poulet, 500g Bœuf, 3b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 2 briques Coulis."
+                },
+                repas: [
+                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Riz Cantonais Étudiant", details: "Riz blanc sauté avec 2 œufs brouillés et oignons hachés. Économique au maximum. (Temps: 8 min)" },
+                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Poêlée Pâtes & Bœuf", details: "200g bœuf haché cuit avec du coulis de tomate sur 80g de coquillettes. (Temps: 10 min)" },
+                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Salade Riz & Thon", details: "Riz froid mélangé avec 1 boîte de thon. Pratique à emporter dans un tupperware en cours. (Temps: 5 min)" },
+                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Poulet Tomate & Pâtes", details: "175g de filet de poulet découpé en dés fins cuit dans la sauce tomate avec tes pâtes. (Temps: 11 min)" },
+                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Pâtes Miroir aux Œufs", details: "Fais cuire tes pâtes. Dans la même poêle à côté, claque 2 œufs au plat à poser dessus. (Temps: 9 min)" },
+                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Riz chaud au Thon fondant", details: "Mélange 1 boîte de thon directement dans ton bol de riz bouillant avec une touche de sel. (Temps: 5 min)" },
+                    { cycle: "Jour 7", type: "Récup", plat: "Omelette des restes", details: "Bats tes 2 derniers œufs sur les restes de riz/pâtes de la semaine dans une poêle chaude." }
+                ]
+            },
+            // Semaine 3 : Bœuf & Poulet Épicés
+            {
+                budget: {
+                    auchan: { sans: "15.50€", avec: "14.30€" },
+                    carrefour: { sans: "15.80€", avec: "14.50€" },
+                    liste: "600g Poulet, 600g Bœuf haché, 2b Thon, 10 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis."
+                },
+                repas: [
+                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Bœuf Épicé Express & Riz", details: "200g de bœuf haché cuit avec du paprika ou poivre éco sur un lit de riz blanc. (Temps: 10 min)" },
+                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes Poulet Paprika", details: "200g de poulet sauté en lanières fines avec tes pâtes. Cuisson très rapide. (Temps: 11 min)" },
+                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Riz & Œufs au plat coulants", details: "Riz chaud surmonté de 2 œufs au plat. Le jaune sert de sauce naturelle zéro frais. (Temps: 8 min)" },
+                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Pâtes froides au Thon", details: "Mélange ton thon avec tes pâtes froides cuites le matin pour gagner du temps. (Temps: 5 min)" },
+                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Poulet grillé & Riz blanc", details: "200g de filet de poulet saisi à feu vif à la poêle avec ton riz. Basique et efficace. (Temps: 12 min)" },
+                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Bœuf Tomate & Coquillettes", details: "200g de bœuf haché mijoté 5 min dans le coulis de tomate sur tes pâtes. (Temps: 10 min)" },
+                    { cycle: "Jour 7", type: "Récup", plat: "Le Bol de Fin de Mois", details: "Mélange le reste de bœuf/poulet avec tes féculents restants et tes 2 derniers œufs." }
+                ]
+            },
+            // Semaine 4 : Le Mix Éco Pratique
+            {
+                budget: {
+                    auchan: { sans: "14.20€", avec: "13.40€" },
+                    carrefour: { sans: "14.45€", avec: "13.60€" },
+                    liste: "400g Poulet, 400g Bœuf, 2b Thon, 12 Œufs, 1kg Pâtes, 1kg Riz, 1 brique Coulis."
+                },
+                repas: [
+                    { cycle: "Jours 1 & 2", type: "Midi", plat: "Poulet Doré & Riz", details: "200g poulet coupé petit pour cuire en moins de 6 min. Sers avec ton riz. (Temps: 9 min)" },
+                    { cycle: "Jours 1 & 2", type: "Soir", plat: "Pâtes & Rillettes de Thon", details: "Émiette ton thon avec un mini filet d'huile et mélange activement aux pâtes. (Temps: 8 min)" },
+                    { cycle: "Jours 3 & 4", type: "Midi", plat: "Boulettes de Bœuf & Riz", details: "Façonne 200g de bœuf en petites boulettes. Cuis à la poêle et sers sur riz. (Temps: 10 min)" },
+                    { cycle: "Jours 3 & 4", type: "Soir", plat: "Pâtes & Œufs Brouillés à chaud", details: "Fais cuire tes pâtes, vide l'eau, casse 2 œufs directement dedans à feu doux. (Temps: 9 min)" },
+                    { cycle: "Jours 5 & 6", type: "Midi", plat: "Riz Froid au Poulet", details: "Mélange de riz et de dés de poulet cuits à l'avance. Parfait pour la fac. (Temps: 5 min)" },
+                    { cycle: "Jours 5 & 6", type: "Soir", plat: "Bœuf Haché Bolognaise", details: "200g bœuf haché cuit dans le coulis de tomate étalé sur tes pâtes chaudes. (Temps: 10 min)" },
+                    { cycle: "Jour 7", type: "Récup", plat: "Omelette Générique", details: "Casse tes 2 derniers œufs sur le fond de ton frigo (riz/pâtes) pour clore la semaine." }
+                ]
+            }
         ];
 
         let currentTab = 'workout';
@@ -218,7 +278,6 @@
             monthlyCount: 0
         };
 
-        // UI Helpers (Heuristics)
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -242,7 +301,6 @@
             saveData();
             render();
             
-            // Haptic/UX Feedback for 100%
             if(document.getElementById('day-progress-text').innerText === '100%') {
                 if(state.checkedExos[key]) showToast("Journée accomplie !");
             }
@@ -302,11 +360,9 @@
             render();
         }
 
-        // Modal Logic (Error Prevention)
         function openModal() {
             const modal = document.getElementById('confirm-modal');
             modal.classList.remove('hidden');
-            // Trigger reflow pour l'animation
             void modal.offsetWidth; 
             modal.classList.add('opacity-100');
         }
@@ -352,7 +408,6 @@
                     const isChecked = state.checkedExos[`${currentDay}-${exo.name}`];
                     const delay = index * 0.1; 
                     
-                    // UX H3: Hitbox étendue sur toute la carte
                     exosHtml += `
                         <label class="hitbox-label block animate-item" style="animation-delay: ${delay}s">
                             <div class="glass-card rounded-3xl p-5">
@@ -388,15 +443,45 @@
 
                 content.innerHTML = daySelectHtml + exosHtml + ctaHtml;
 
-                // Sync UI checkboxes
                 document.querySelectorAll('input[type="checkbox"]').forEach(box => {
                     const icon = box.nextElementSibling.querySelector('.check-icon');
                     if(box.checked) icon.classList.remove('hidden');
                 });
 
             } else if (currentTab === 'nutrition') {
-                let nutHtml = `<div class="space-y-4 pb-4 animate-item">`;
-                nutritionData.forEach(nut => {
+                const weekIndex = getWeekNumber() % 4;
+                const currentData = rotationMenus[weekIndex];
+
+                // INJECTION DU COMPARATEUR DE PRIX ÉTUDIANT ULTRA-CIBLÉ
+                let nutHtml = `<div class="space-y-4 pb-4 animate-item">
+                    <div class="glass-card rounded-3xl p-5 border-white/10 bg-gradient-to-br from-zinc-950 to-black">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_#ffffff]"></span>
+                            <h2 class="font-black text-white text-xs uppercase tracking-widest">Budget Semaine ${weekIndex + 1} (Cible ~15€)</h2>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-[11px] mb-4 border-b border-white/5 pb-3">
+                            <div>
+                                <span class="text-zinc-400 font-bold block mb-1">🏪 AUCHAN BOULIAC</span>
+                                <p class="text-zinc-200">Sans Carte: <span class="text-white font-bold">${currentData.budget.auchan.sans}</span></p>
+                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${currentData.budget.auchan.avec}</span></p>
+                            </div>
+                            <div>
+                                <span class="text-zinc-400 font-bold block mb-1">🏪 CARREFOUR RIVES D'ARCINS</span>
+                                <p class="text-zinc-200">Sans Carte: <span class="text-white font-bold">${currentData.budget.carrefour.sans}</span></p>
+                                <p class="text-zinc-500">Avec Carte: <span class="text-zinc-300 font-bold">${currentData.budget.carrefour.avec}</span></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">Panier requis (Gamme Éco) :</span>
+                            <p class="text-xs text-zinc-300 italic leading-relaxed">${currentData.budget.liste}</p>
+                        </div>
+                    </div>
+                `;
+
+                // INJECTION DES REPAS BATCH COOKING
+                currentData.repas.forEach(nut => {
                     nutHtml += `
                         <div class="glass-card rounded-3xl p-5">
                             <div class="flex justify-between items-center mb-3">
@@ -404,7 +489,7 @@
                                 <span class="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded border border-white/10 ${nut.type === 'Midi' ? 'bg-zinc-800 text-white' : 'bg-black text-zinc-300'}">${nut.type}</span>
                             </div>
                             <h3 class="font-bold text-white text-base tracking-tight">${nut.plat}</h3>
-                            <p class="text-xs text-zinc-400 mt-2">${nut.details}</p>
+                            <p class="text-xs text-zinc-400 mt-2 leading-relaxed">${nut.details}</p>
                         </div>
                     `;
                 });
@@ -422,7 +507,6 @@
                     </div>
                 `;
                 if (state.history.length === 0) {
-                    // Empty state optimisé (H6)
                     bilanHtml += `
                         <div class="text-center py-12 px-6">
                             <div class="w-12 h-12 bg-zinc-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
@@ -484,7 +568,6 @@
             calculateProgress();
         }
 
-        // Validation & Diagnostic Helper (H9)
         function saveProfile() {
             const age = document.getElementById('p-age').value;
             const height = document.getElementById('p-height').value;
