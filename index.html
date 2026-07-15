@@ -24,6 +24,7 @@
             box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.6);
             transition: transform 0.2s ease, border-color 0.2s ease;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent; /* Sécurité clics mobiles */
         }
         
         .workout-card:active { transform: scale(0.98); }
@@ -69,7 +70,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Hitbox pour le bouton check indépendant du reste de la carte */
+        /* Hitbox pour la case à cocher */
         .check-hitbox { padding: 10px; margin: -10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
@@ -94,7 +95,6 @@
         <div id="exercise-sheet-content" class="bottom-sheet-content bg-zinc-950 border-t border-white/15 rounded-t-[2.5rem] w-full max-h-[85vh] overflow-y-auto transform translate-y-full transition-transform duration-300 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]" onclick="event.stopPropagation()">
             <!-- Petite barre (poignée) -->
             <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mt-4 mb-6"></div>
-            
             <div class="px-6 pb-12" id="exercise-modal-body">
                 <!-- Injecté dynamiquement via JS -->
             </div>
@@ -170,7 +170,7 @@
                     name: "Relevés de jambes au sol", 
                     reps: "3x12 Reps", rest: "60s", work: "Bas des abdos", 
                     desc: "Allongé sur le dos, monte les jambes tendues à la verticale puis redescends en 3 secondes.",
-                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allonge-toi complètement sur le dos.<br>2. Place tes mains <b>à plat sous tes fessiers</b>. C'est le secret pour protéger le bas de ton dos !<br>3. Garde tes jambes tendues et collées l'une à l'autre.<br>4. Monte les jambes vers le plafond en soufflant.<br>5. Redescends-les très doucement en inspirant. <br><br>⚠️ <b>Attention :</b> Ne descends pas jusqu'à toucher le sol ! Arrête-toi dès que tu sens que le bas de ton dos veut se décoller du sol.<br><br>🔥 <b>Ce que ça travaille :</b> Principalement la partie basse du grand droit de l'abdomen (le muscle qui fait le fameux 'V' du bas du ventre).",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allonge-toi complètement sur le dos.<br>2. Place tes mains <b>à plat sous tes fessiers</b>. C'est le secret pour protéger le bas de ton dos !<br>3. Garde tes jambes tendues et collées l'une à l'autre.<br>4. Monte les jambes vers le plafond en soufflant.<br>5. Redescends-les très doucement en inspirant.<br><br>⚠️ <b>Attention :</b> Ne descends pas jusqu'à toucher le sol ! Arrête-toi dès que tu sens que le bas de ton dos veut se décoller du sol.<br><br>🔥 <b>Ce que ça travaille :</b> Principalement la partie basse du grand droit de l'abdomen (le muscle qui fait le fameux 'V' du bas du ventre).",
                     water: "200ml (1 grand verre)"
                 },
                 { 
@@ -385,7 +385,7 @@
         
         let isEditingProfile = false;
 
-        let state = JSON.parse(localStorage.getItem('glowState_UXv7')) || {
+        let state = JSON.parse(localStorage.getItem('glowState_UXv8')) || {
             checkedExos: {},
             profile: { height: "170", weight: "60", age: "24" },
             history: [],
@@ -408,8 +408,10 @@
             }, 2500);
         }
 
-        function toggleCheck(exoName) {
-            const key = `${currentDay}-${exoName}`;
+        // CORRECTION MAJEURE : On utilise l'index au lieu du nom de l'exo pour éviter les bugs avec l'apostrophe !
+        function toggleCheck(index) {
+            const exo = programData[currentDay].exos[index];
+            const key = `${currentDay}-${exo.name}`;
             state.checkedExos[key] = !state.checkedExos[key];
             saveData();
             render();
@@ -419,7 +421,7 @@
         }
 
         function saveData() {
-            localStorage.setItem('glowState_UXv7', JSON.stringify(state));
+            localStorage.setItem('glowState_UXv8', JSON.stringify(state));
             calculateProgress();
         }
 
@@ -459,6 +461,7 @@
         }
 
         function switchTab(tab) {
+            closeExerciseModal(); // Sécurité : On ferme la modale si l'utilisateur change d'onglet
             currentTab = tab;
             ['workout', 'nutrition', 'bilan', 'profil'].forEach(t => {
                 document.getElementById(`nav-${t}`).className = "flex flex-col items-center gap-1.5 text-zinc-500 hover:text-zinc-300 transition-colors p-2";
@@ -551,9 +554,8 @@
         function closeExerciseModal() {
             const overlay = document.getElementById('exercise-sheet-overlay');
             const sheet = document.getElementById('exercise-sheet-content');
-            
-            sheet.classList.remove('active');
-            overlay.classList.remove('active');
+            if(sheet) sheet.classList.remove('active');
+            if(overlay) overlay.classList.remove('active');
         }
 
         function render() {
@@ -587,8 +589,8 @@
                                     <span class="inline-block bg-white/10 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mt-2 border border-white/10">${exo.work}</span>
                                 </div>
                                 
-                                <!-- Zone de clic exclusive pour la case à cocher -->
-                                <div class="check-hitbox" onclick="event.stopPropagation(); toggleCheck('${exo.name}')">
+                                <!-- Zone de clic exclusive pour la case à cocher. Utilise index au lieu de nom -->
+                                <div class="check-hitbox" onclick="event.stopPropagation(); toggleCheck(${index})">
                                     <div class="w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${isChecked ? 'bg-white border-white shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'bg-zinc-900 border-zinc-500'}">
                                         <svg class="w-4 h-4 text-black check-icon ${isChecked ? 'active' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
                                     </div>
