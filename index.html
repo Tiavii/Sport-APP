@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GlowFit Pro - Évolution Étudiant</title>
+    <title>GlowFit Pro - Évolution Étudiant & Pédagogie</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
     <meta name="theme-color" content="#000000">
@@ -23,7 +23,10 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.6);
             transition: transform 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
         }
+        
+        .workout-card:active { transform: scale(0.98); }
 
         .glass-card {
             background: rgba(255, 255, 255, 0.02);
@@ -58,18 +61,23 @@
         @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
 
-        .hitbox-label { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .hitbox-label:active .workout-card { transform: scale(0.98); }
+        /* Animation du Bottom Sheet (Modale d'exercice) */
+        .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
+        .bottom-sheet-content.active { transform: translateY(0); }
 
         .progress-transition { transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Hitbox pour le bouton check indépendant du reste de la carte */
+        .check-hitbox { padding: 10px; margin: -10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
 <body class="pb-32 min-h-screen relative overflow-x-hidden selection:bg-white selection:text-black">
 
     <div id="toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
 
+    <!-- Modale de Confirmation de semaine -->
     <div id="confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden items-center justify-center p-6 opacity-0 transition-opacity duration-300">
         <div class="glass-card rounded-3xl p-6 w-full max-w-sm border-white/15">
             <h3 class="font-bold text-white text-lg mb-2">Clôturer la semaine ?</h3>
@@ -77,6 +85,18 @@
             <div class="flex gap-3">
                 <button onclick="closeModal()" class="flex-1 py-3 rounded-2xl bg-zinc-900 text-zinc-300 text-xs font-bold uppercase tracking-widest hover:bg-zinc-800 transition-colors">Annuler</button>
                 <button onclick="confirmArchive()" class="flex-1 py-3 rounded-2xl bg-white text-black text-xs font-bold uppercase tracking-widest hover:scale-[1.02] transition-transform">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE D'EXERCICE DÉTAILLÉ (BOTTOM SHEET) -->
+    <div id="exercise-sheet-overlay" class="bottom-sheet-overlay fixed inset-0 bg-black/90 backdrop-blur-sm z-[300] opacity-0 pointer-events-none transition-opacity duration-300 flex flex-col justify-end" onclick="closeExerciseModal()">
+        <div id="exercise-sheet-content" class="bottom-sheet-content bg-zinc-950 border-t border-white/15 rounded-t-[2.5rem] w-full max-h-[85vh] overflow-y-auto transform translate-y-full transition-transform duration-300 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]" onclick="event.stopPropagation()">
+            <!-- Petite barre (poignée) -->
+            <div class="w-12 h-1.5 bg-zinc-700 rounded-full mx-auto mt-4 mb-6"></div>
+            
+            <div class="px-6 pb-12" id="exercise-modal-body">
+                <!-- Injecté dynamiquement via JS -->
             </div>
         </div>
     </div>
@@ -146,48 +166,167 @@
     <script>
         const programData = {
             Lundi: { label: "Lundi · Focus Volume Abdos", exos: [
-                { name: "Relevés de jambes au sol", reps: "3x12 Reps", rest: "60s", work: "Bas des abdos", desc: "Allongé sur le dos, monte les jambes tendues à la verticale puis redescends en 3 secondes." },
-                { name: "Crunchs bras tendus", reps: "3x15 Reps", rest: "60s", work: "Haut abdos", desc: "Bras tendus vers le plafond. Décolle uniquement les omoplates." },
-                { name: "Planche Commando", reps: "3x45 sec", rest: "60s", work: "Stabilité globale", desc: "Passe sur la paume des mains une par une, puis redescends sur les coudes." }
+                { 
+                    name: "Relevés de jambes au sol", 
+                    reps: "3x12 Reps", rest: "60s", work: "Bas des abdos", 
+                    desc: "Allongé sur le dos, monte les jambes tendues à la verticale puis redescends en 3 secondes.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allonge-toi complètement sur le dos.<br>2. Place tes mains <b>à plat sous tes fessiers</b>. C'est le secret pour protéger le bas de ton dos !<br>3. Garde tes jambes tendues et collées l'une à l'autre.<br>4. Monte les jambes vers le plafond en soufflant.<br>5. Redescends-les très doucement en inspirant. <br><br>⚠️ <b>Attention :</b> Ne descends pas jusqu'à toucher le sol ! Arrête-toi dès que tu sens que le bas de ton dos veut se décoller du sol.<br><br>🔥 <b>Ce que ça travaille :</b> Principalement la partie basse du grand droit de l'abdomen (le muscle qui fait le fameux 'V' du bas du ventre).",
+                    water: "200ml (1 grand verre)"
+                },
+                { 
+                    name: "Crunchs bras tendus", 
+                    reps: "3x15 Reps", rest: "60s", work: "Haut abdos", 
+                    desc: "Bras tendus vers le plafond. Décolle uniquement les omoplates.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Reste sur le dos, mais plie tes genoux avec tes pieds à plat sur le sol.<br>2. Tends tes deux bras droit vers le plafond (comme un zombie).<br>3. Imagine qu'un fil imaginaire tire tes poignets vers le haut. Décolle <b>uniquement tes épaules et tes omoplates</b> du sol en soufflant fort.<br>4. Ne tire surtout pas sur ta nuque ! Ton regard doit rester fixé au plafond.<br>5. Redescends doucement en retenant la descente.<br><br>🔥 <b>Ce que ça travaille :</b> Le haut des abdominaux (les premiers carrés de chocolat sous les pectoraux).",
+                    water: "150ml (quelques gorgées)"
+                },
+                { 
+                    name: "Planche Commando", 
+                    reps: "3x45 sec", rest: "60s", work: "Stabilité globale", 
+                    desc: "Passe sur la paume des mains une par une, puis redescends sur les coudes.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Mets-toi en position de gainage classique (sur les coudes, corps droit comme une planche).<br>2. Pousse sur ta main droite pour tendre le bras droit, puis fais pareil avec la main gauche. Tu es maintenant en position haute (comme pour faire une pompe).<br>3. Redescends sur le coude droit, puis le coude gauche.<br><br>⚠️ <b>Le piège à éviter :</b> Ton bassin va vouloir se balancer de gauche à droite. Contracte tes abdos au maximum pour rester le plus stable possible !<br><br>🔥 <b>Ce que ça travaille :</b> Le transverse (le muscle de la ceinture invisible qui rentre le ventre) et la stabilité des épaules.",
+                    water: "250ml (bonne hydratation nécessaire après ce gainage intense)"
+                }
             ]},
             Mardi: { label: "Mardi · Épaules, Biceps & Posture", exos: [
-                { name: "Développé Militaire", reps: "3x12 Reps", rest: "60s", work: "Deltoïdes", desc: "Pousse des poids au-dessus de ta tête." },
-                { name: "Curl Biceps", reps: "3x12 Reps", rest: "60s", work: "Galbe Biceps", desc: "Coudes verrouillés, contrôle la descente." },
-                { name: "Élévations Latérales", reps: "4x15 Reps", rest: "60s", work: "Largeur Épaules", desc: "Monte les poids sur les côtés jusqu'à hauteur d'épaules." },
-                { name: "Face Pull", reps: "3x15 Reps", rest: "60s", work: "Arrière d'épaule", desc: "Allongé sur le ventre, lève les coudes vers le haut en serrant les omoplates." }
+                { 
+                    name: "Développé Militaire", 
+                    reps: "3x12 Reps", rest: "60s", work: "Deltoïdes", 
+                    desc: "Pousse des poids au-dessus de ta tête.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Assis ou debout, prends des poids dans tes mains.<br>2. Positionne-les au niveau de tes oreilles, coudes pliés à 90 degrés.<br>3. Pousse verticalement vers le plafond en soufflant, jusqu'à ce que tes bras soient presque tendus.<br>4. Redescends lentement jusqu'à tes oreilles.<br>5. Garde la poitrine bombée et le dos droit (ne te penche pas en arrière !).<br><br>🔥 <b>Ce que ça travaille :</b> L'avant et le côté de tes épaules. C'est l'exercice roi pour avoir des épaules larges.",
+                    water: "200ml"
+                },
+                { 
+                    name: "Curl Biceps", 
+                    reps: "3x12 Reps", rest: "60s", work: "Galbe Biceps", 
+                    desc: "Coudes verrouillés au corps, contrôle la descente.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Debout, un poids dans chaque main, paumes vers l'avant.<br>2. <b>Verrouille tes coudes contre tes côtes.</b> Ils ne doivent pas avancer ni reculer pendant l'exercice.<br>3. Plie les coudes pour monter les poids vers tes épaules en soufflant.<br>4. Redescends très lentement (prends 3 secondes pour descendre).<br><br>🔥 <b>Ce que ça travaille :</b> Le biceps brachial, pour donner le volume et le galbe à l'avant du bras.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Élévations Latérales", 
+                    reps: "4x15 Reps", rest: "60s", work: "Largeur Épaules", 
+                    desc: "Monte les poids sur les côtés jusqu'à hauteur d'épaules.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Debout, penche ton buste de 5 petits degrés vers l'avant.<br>2. Poids dans les mains, bras très légèrement pliés (pas complètement tendus).<br>3. Lève les bras sur les côtés (comme un aigle qui déploie ses ailes) jusqu'à ce qu'ils soient parallèles au sol.<br>4. Imagine que tu verses une carafe d'eau en haut du mouvement (penche légèrement les poignets vers l'avant).<br>5. Redescends en retenant le poids.<br><br>🔥 <b>Ce que ça travaille :</b> Le deltoïde latéral (le côté de l'épaule). C'est ce qui donne la 'carrure' de face.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Face Pull (Au sol)", 
+                    reps: "3x15 Reps", rest: "60s", work: "Arrière d'épaule", 
+                    desc: "Allongé sur le ventre, lève les coudes vers le haut en serrant les omoplates.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allonge-toi complètement sur le ventre sur un tapis.<br>2. Mets tes bras en position 'cactus' (coudes pliés à 90 degrés, alignés avec tes épaules).<br>3. Décolle tes mains, tes coudes et ta poitrine du sol en <b>serrant très fort tes omoplates ensemble</b> dans ton dos.<br>4. Maintiens la contraction 2 secondes en haut.<br>5. Relâche doucement.<br><br>🔥 <b>Ce que ça travaille :</b> L'arrière des épaules et le haut du dos. C'est <b>l'exercice ultime pour corriger la posture</b> courbée liée au téléphone/ordinateur et ouvrir la cage thoracique.",
+                    water: "200ml"
+                }
             ]},
             Mercredi: { label: "Mercredi · Obliques & Lignes", exos: [
-                { name: "Russian Twists", reps: "3x20 Reps", rest: "60s", work: "Obliques", desc: "Pivote le haut du buste de gauche à droite." },
-                { name: "Gainage Latéral", reps: "3x12 / côté", rest: "60s", work: "Verrouillage", desc: "Descends et remonte le bassin de haut en bas." },
-                { name: "Crunchs Bicyclette", reps: "3x45 sec", rest: "60s", work: "Synchro", desc: "Amène le coude droit sur le genou gauche, puis inversement." }
+                { 
+                    name: "Russian Twists", 
+                    reps: "3x20 Reps", rest: "60s", work: "Obliques", 
+                    desc: "Pivote le haut du buste de gauche à droite.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Assis au sol, genoux pliés. Penche ton buste en arrière à 45 degrés (ton dos doit rester droit, pas courbé).<br>2. Décolle légèrement tes pieds du sol (si c'est trop dur, garde les talons au sol).<br>3. Joins tes mains devant toi.<br>4. Pivote tes épaules et tes mains pour toucher le sol à droite, puis à gauche.<br><br>⚠️ <b>Attention :</b> Le mouvement doit venir de la taille (tes abdos), pas juste de tes bras !<br><br>🔥 <b>Ce que ça travaille :</b> Les obliques (les abdos sur les côtés de la taille). Parfait pour dessiner la silhouette.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Gainage Latéral", 
+                    reps: "3x12 / côté", rest: "60s", work: "Verrouillage", 
+                    desc: "Descends et remonte le bassin de haut en bas.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Place-toi sur le côté, en appui sur un coude (le coude doit être exactement sous l'épaule).<br>2. Décolle le bassin pour que ton corps forme une ligne droite des épaules aux chevilles.<br>3. Descends tes hanches pour effleurer le sol, puis pousse fort pour remonter plus haut que la ligne droite.<br>4. Fais tes répétitions d'un côté, puis change de côté.<br><br>🔥 <b>Ce que ça travaille :</b> Le renforcement profond de la taille latérale et la solidité du tronc.",
+                    water: "200ml"
+                },
+                { 
+                    name: "Crunchs Bicyclette", 
+                    reps: "3x45 sec", rest: "60s", work: "Synchro", 
+                    desc: "Amène le coude droit sur le genou gauche, puis inversement.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allongé sur le dos, mains posées légèrement derrière les oreilles (ne tire pas sur la tête).<br>2. Décolle les pieds et plie les genoux à 90 degrés.<br>3. Tends la jambe droite au-dessus du sol tout en ramenant le coude droit vers le genou gauche.<br>4. Alterne ensuite : coude gauche vers genou droit (pendant que l'autre jambe se tend).<br>5. Fais-le lentement ! C'est la rotation du buste qui fait travailler, pas la vitesse.<br><br>🔥 <b>Ce que ça travaille :</b> Un travail complet de toute la sangle abdominale avec un focus sur les obliques.",
+                    water: "200ml"
+                }
             ]},
             Jeudi: { label: "Jeudi · Triceps & Posture", exos: [
-                { name: "Dips sur chaise", reps: "3x15 Reps", rest: "60s", work: "Triceps", desc: "Descends le bassin vers le sol puis repousse fermement." },
-                { name: "L'Oiseau", reps: "4x20 Reps", rest: "60s", work: "Dos / Trapèzes", desc: "Buste penché, ouvre tes bras sur les côtés." },
-                { name: "Wall Angel", reps: "3x10 Reps", rest: "60s", work: "Colonne", desc: "Dos plaqué au mur. Fais glisser les bras vers le haut en Y." }
+                { 
+                    name: "Dips sur chaise", 
+                    reps: "3x15 Reps", rest: "60s", work: "Triceps", 
+                    desc: "Descends le bassin vers le sol puis repousse fermement.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Place une chaise solide ou le bord de ton lit derrière toi.<br>2. Pose tes mains sur le bord, doigts pointés vers l'avant, fesses dans le vide.<br>3. Garde tes jambes semi-tendues ou pliées devant toi.<br>4. Plie les coudes pour descendre ton bassin vers le sol (ton dos doit frôler la chaise pour rester droit).<br>5. Pousse fort sur tes paumes pour remonter jusqu'à tendre les bras.<br><br>⚠️ <b>Attention :</b> Ne descends pas trop bas pour protéger tes épaules. Arrête-toi quand tes coudes sont à 90 degrés.<br><br>🔥 <b>Ce que ça travaille :</b> L'arrière des bras (les triceps). C'est le muscle qui donne 60% du volume au bras.",
+                    water: "200ml"
+                },
+                { 
+                    name: "L'Oiseau", 
+                    reps: "4x20 Reps", rest: "60s", work: "Dos / Trapèzes", 
+                    desc: "Buste penché, ouvre tes bras sur les côtés.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Debout, plie un peu les genoux et penche ton buste très en avant (presque parallèle au sol). <b>Garde le dos plat !</b><br>2. Un petit poids dans chaque main, laisse tes bras pendre vers le sol.<br>3. Écarte les bras sur les côtés vers le plafond (comme un oiseau qui bat des ailes).<br>4. Serre tes omoplates à la fin du mouvement.<br>5. Reviens doucement à la position de départ.<br><br>🔥 <b>Ce que ça travaille :</b> Le milieu du dos, les trapèzes et l'arrière des épaules. Vital pour l'esthétique du dos en V et une posture saine.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Wall Angel", 
+                    reps: "3x10 Reps", rest: "60s", work: "Colonne", 
+                    desc: "Dos plaqué au mur. Fais glisser les bras vers le haut en Y.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Colle-toi dos à un mur. Tes talons, tes fesses, le haut de ton dos et ta tête doivent toucher le mur.<br>2. Lève tes bras en forme de 'W' en collant tes coudes et le dos de tes mains contre le mur.<br>3. Sans jamais décoller le dos, les coudes ni les mains du mur, fais glisser tes bras vers le haut pour former un 'Y'.<br>4. Redescends lentement. Si tu n'y arrives pas sans décoller, c'est normal au début : c'est un signe de raideur de posture.<br><br>🔥 <b>Ce que ça travaille :</b> La mobilité de la colonne vertébrale, l'ouverture des pectoraux et la souplesse des épaules. L'arme absolue anti-dos courbé !",
+                    water: "150ml"
+                }
             ]},
             Vendredi: { label: "Vendredi · Bas du Ventre", exos: [
-                { name: "Ciseaux de jambes", reps: "3x45 sec", rest: "60s", work: "Bas grand droit", desc: "Mouvements de ciseaux à 10cm du sol." },
-                { name: "Genoux poitrine", reps: "3x12 Reps", rest: "60s", work: "Fléchisseurs", desc: "Assis, ramène tes genoux vers ta poitrine." },
-                { name: "Planche classique", reps: "3x1 min", rest: "60s", work: "Transverse", desc: "Aspire ton nombril fort vers la colonne." }
+                { 
+                    name: "Ciseaux de jambes", 
+                    reps: "3x45 sec", rest: "60s", work: "Bas grand droit", 
+                    desc: "Mouvements de ciseaux à 10cm du sol.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allongé sur le dos, mains sous les fesses.<br>2. Garde le bas du dos scotché au sol.<br>3. Lève les jambes tendues à environ 10 à 20 cm du sol.<br>4. Croise la jambe droite au-dessus de la gauche, puis la gauche au-dessus de la droite de façon rapide et continue.<br><br>⚠️ <b>Indication :</b> Si ton dos se creuse, lève tes jambes un peu plus haut vers le plafond pour protéger tes lombaires.<br><br>🔥 <b>Ce que ça travaille :</b> Cible intensément la portion inférieure des abdominaux pour le galbe du bas du ventre.",
+                    water: "200ml"
+                },
+                { 
+                    name: "Genoux poitrine", 
+                    reps: "3x12 Reps", rest: "60s", work: "Fléchisseurs", 
+                    desc: "Assis, ramène tes genoux vers ta poitrine.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Assis au sol ou sur le bord de ton lit, penche ton buste légèrement en arrière et prends appui sur tes mains derrière toi.<br>2. Tends tes jambes devant toi au-dessus du vide.<br>3. Ramène tes genoux vers ta poitrine en soufflant, tout en redressant un peu ton buste pour fermer l'angle.<br>4. Tends à nouveau les jambes sans toucher le sol.<br><br>🔥 <b>Ce que ça travaille :</b> L'ensemble de la sangle abdominale avec une grosse contraction au centre.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Planche classique", 
+                    reps: "3x1 min", rest: "60s", work: "Transverse", 
+                    desc: "Aspire ton nombril fort vers la colonne.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Place-toi sur les coudes (exactement sous les épaules) et sur la pointe des pieds.<br>2. Ton corps doit être une ligne parfaite. Ne monte pas les fesses en l'air, et surtout, ne laisse pas ton ventre s'affaisser vers le sol !<br>3. <b>Le Secret :</b> Rentre volontairement ton ventre, imagine que tu veux coller ton nombril à ta colonne vertébrale. Contracte aussi tes fessiers.<br>4. Respire calmement.<br><br>🔥 <b>Ce que ça travaille :</b> Le gainage total, et particulièrement le muscle transverse responsable de l'effet 'ventre plat'.",
+                    water: "250ml"
+                }
             ]},
             Samedi: { label: "Samedi · Bras & Posture", exos: [
-                { name: "Curl Marteau", reps: "3x12 Reps", rest: "60s", work: "Brachial", desc: "Prise neutre. Monte sans tourner les poignets." },
-                { name: "Pompes Diamant", reps: "3x Max", rest: "60s", work: "Intérieur Pecs", desc: "Mains serrées en diamant sous la poitrine." },
-                { name: "Face Pull", reps: "3x15 Reps", rest: "60s", work: "Correction dos", desc: "Indispensable pour contrer la courbure devant l'écran." }
+                { 
+                    name: "Curl Marteau", 
+                    reps: "3x12 Reps", rest: "60s", work: "Brachial", 
+                    desc: "Prise neutre. Monte sans tourner les poignets.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Debout, un poids dans chaque main.<br>2. La différence avec le curl classique : tiens tes poids comme si tu tenais un marteau (les paumes de mains se regardent, pas vers le ciel).<br>3. Garde les coudes collés aux côtes.<br>4. Monte les poids vers tes épaules sans jamais tourner les poignets.<br>5. Redescends lentement.<br><br>🔥 <b>Ce que ça travaille :</b> Le muscle brachial et l'avant-bras. C'est l'exercice qui donne l'effet de 'grosseur' et d'épaisseur du bras vu de profil.",
+                    water: "150ml"
+                },
+                { 
+                    name: "Pompes Diamant", 
+                    reps: "3x Max", rest: "60s", work: "Intérieur Pecs", 
+                    desc: "Mains serrées en diamant sous la poitrine.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Position de pompe classique (sur les genoux si c'est trop difficile pour commencer).<br>2. Rapproche tes mains sous le centre de ta poitrine pour que tes index et tes pouces se touchent en formant un triangle (ou un diamant).<br>3. Descends doucement en gardant les coudes proches de tes côtes (ta poitrine doit presque toucher tes mains).<br>4. Repousse fort de manière explosive.<br><br>🔥 <b>Ce que ça travaille :</b> Cible massivement les triceps (l'arrière des bras) et l'intérieur des pectoraux (la ligne du milieu de la poitrine).",
+                    water: "200ml"
+                },
+                { 
+                    name: "Face Pull", 
+                    reps: "3x15 Reps", rest: "60s", work: "Correction dos", 
+                    desc: "Indispensable pour contrer la courbure devant l'écran.",
+                    pedagogy: "🎯 <b>Rappel d'exécution :</b><br><br>1. Allongé sur le ventre, bras en cactus (90°).<br>2. Décolle la poitrine, tire tes coudes vers le haut et l'arrière en serrant les omoplates au maximum.<br>3. Ton regard reste fixé vers le sol pour ne pas casser la nuque.<br>4. Maintiens la contraction 2 à 3 secondes.<br><br>🔥 <b>Ce que ça travaille :</b> Les muscles fixateurs des omoplates. Essentiel pour ramener les épaules en arrière et ouvrir la posture.",
+                    water: "150ml"
+                }
             ]},
             Dimanche: { label: "Dimanche · Récupération Active", exos: [
-                { name: "Stomach Vacuum", reps: "5x30 sec", rest: "45s", work: "Taille fine", desc: "Allongé, expire tout et aspire ton nombril." },
-                { name: "Étirements Pectoraux", reps: "3x30 sec", rest: "0s", work: "Relâchement", desc: "Dans l'encadrement d'une porte, avance le buste." }
+                { 
+                    name: "Stomach Vacuum", 
+                    reps: "5x30 sec", rest: "45s", work: "Taille fine", 
+                    desc: "Allongé, expire tout l'air et aspire ton nombril.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Allonge-toi sur le dos, genoux pliés, pieds à plat.<br>2. Prends une grande inspiration par le nez.<br>3. Expire tout l'air de tes poumons par la bouche jusqu'à être totalement vide.<br>4. <b>SANS respirer (en apnée)</b>, 'avale' ton ventre au maximum vers l'intérieur et vers le haut (sous les côtes). Imagine que tu veux fermer un jean beaucoup trop petit.<br>5. Maintiens cette apnée le ventre rentré pendant 10 à 30 secondes.<br>6. Relâche doucement et respire normalement entre les séries.<br><br>🔥 <b>Ce que ça travaille :</b> L'exercice absolu pour réduire le tour de taille et affiner la silhouette de l'intérieur.",
+                    water: "150ml (à faire de préférence le ventre vide le matin)"
+                },
+                { 
+                    name: "Étirements Pectoraux", 
+                    reps: "3x30 sec", rest: "0s", work: "Relâchement", 
+                    desc: "Dans l'encadrement d'une porte, avance le buste.",
+                    pedagogy: "🎯 <b>Comment bien le faire :</b><br><br>1. Place-toi dans l'encadrement d'une porte ouverte.<br>2. Plie tes coudes à 90 degrés et pose tes avant-bras sur les montants de la porte de chaque côté.<br>3. Fais un pas en avant avec une jambe et pousse doucement ta poitrine vers l'avant à travers la porte.<br>4. Tu dois sentir un étirement profond à l'avant de tes épaules et sur ta poitrine.<br>5. Maintiens 30 secondes en respirant profondément. Ne donne pas d'à-coups.<br><br>🔥 <b>Ce que ça travaille :</b> Libère les tensions des muscles pectoraux qui, lorsqu'ils sont trop raides, tirent nos épaules vers l'avant.",
+                    water: "Grand verre d'eau (200ml) pour éliminer les toxines libérées par l'étirement."
+                }
             ]}
         };
-
-        function getWeekNumber() {
-            const currentDate = new Date();
-            const startDate = new Date(currentDate.getFullYear(), 0, 1);
-            const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
-            return Math.ceil((currentDate.getDay() + 1 + days) / 7);
-        }
 
         const rotationMenus = [
             // Semaine 1
@@ -232,14 +371,21 @@
             }
         ];
 
+        function getWeekNumber() {
+            const currentDate = new Date();
+            const startDate = new Date(currentDate.getFullYear(), 0, 1);
+            const days = Math.floor((currentDate - startDate) / (24 * 60 * 60 * 1000));
+            return Math.ceil((currentDate.getDay() + 1 + days) / 7);
+        }
+
         let currentTab = 'workout';
         const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
         let currentDayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
         let currentDay = days[currentDayIndex];
         
-        let isEditingProfile = false; // Variable pour le basculement du profil
+        let isEditingProfile = false;
 
-        let state = JSON.parse(localStorage.getItem('glowState_UXv5')) || {
+        let state = JSON.parse(localStorage.getItem('glowState_UXv7')) || {
             checkedExos: {},
             profile: { height: "170", weight: "60", age: "24" },
             history: [],
@@ -267,10 +413,13 @@
             state.checkedExos[key] = !state.checkedExos[key];
             saveData();
             render();
+            if(document.getElementById('day-progress-text').innerText === '100%' && state.checkedExos[key]) {
+                showToast("Journée accomplie !");
+            }
         }
 
         function saveData() {
-            localStorage.setItem('glowState_UXv5', JSON.stringify(state));
+            localStorage.setItem('glowState_UXv7', JSON.stringify(state));
             calculateProgress();
         }
 
@@ -349,6 +498,64 @@
             showToast('Semaine archivée avec succès');
         }
 
+        /* ----- LOGIQUE DU BOTTOM SHEET D'EXERCICE ----- */
+        function openExerciseModal(day, index) {
+            const exo = programData[day].exos[index];
+            const contentDiv = document.getElementById('exercise-modal-body');
+            
+            contentDiv.innerHTML = `
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <span class="inline-block bg-white text-black font-black text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-lg mb-3 shadow-[0_0_15px_rgba(255,255,255,0.2)]">${exo.work}</span>
+                        <h2 class="text-2xl font-black text-white leading-tight">${exo.name}</h2>
+                    </div>
+                    <button onclick="closeExerciseModal()" class="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Bloc Pédagogie -->
+                    <div class="bg-zinc-900/60 rounded-2xl p-5 border border-white/5">
+                        <p class="text-[13px] text-zinc-300 leading-relaxed font-medium">${exo.pedagogy}</p>
+                    </div>
+                    
+                    <!-- Bloc Hydratation et Objectif -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-950/30 rounded-2xl p-4 border border-blue-500/20">
+                            <span class="text-[9px] font-bold text-blue-400 uppercase tracking-widest block mb-1">💧 Boire après l'exo</span>
+                            <span class="text-white font-bold text-sm">${exo.water}</span>
+                        </div>
+                        <div class="bg-zinc-900/60 rounded-2xl p-4 border border-white/5">
+                            <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block mb-1">🎯 Ton Objectif</span>
+                            <span class="text-white font-bold text-sm">${exo.reps}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-zinc-900/40 rounded-2xl p-4 border border-white/5 text-center">
+                        <p class="text-[11px] text-zinc-400 leading-relaxed">
+                            <span class="text-white font-bold block mb-1">Rappel Hydratation Quotidienne</span>
+                            Pour ton gabarit (~60kg), ton objectif vital est de boire <b>2 à 2.5 Litres d'eau par jour</b> (soit 8 à 10 grands verres) pour construire le muscle et éviter les courbatures.
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            const overlay = document.getElementById('exercise-sheet-overlay');
+            const sheet = document.getElementById('exercise-sheet-content');
+            
+            overlay.classList.add('active');
+            sheet.classList.add('active');
+        }
+
+        function closeExerciseModal() {
+            const overlay = document.getElementById('exercise-sheet-overlay');
+            const sheet = document.getElementById('exercise-sheet-content');
+            
+            sheet.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
         function render() {
             const content = document.getElementById('tab-content');
             document.getElementById('current-day-label').innerText = programData[currentDay].label;
@@ -367,27 +574,32 @@
                     const delay = index * 0.1; 
                     
                     exosHtml += `
-                        <label class="hitbox-label block animate-item" style="animation-delay: ${delay}s">
-                            <div class="workout-card rounded-3xl p-5">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1 pr-4">
-                                        <h3 class="font-bold text-white text-lg tracking-tight">${exo.name}</h3>
-                                        <span class="inline-block bg-white/10 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mt-2 border border-white/10">${exo.work}</span>
-                                    </div>
-                                    <div class="relative flex items-center justify-center p-1">
-                                        <input type="checkbox" onchange="toggleCheck('${exo.name}')" class="opacity-0 absolute w-0 h-0" ${isChecked ? 'checked' : ''}>
-                                        <div class="w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${isChecked ? 'bg-white border-white' : 'bg-zinc-900 border-zinc-500'}">
-                                            <svg class="w-4 h-4 text-black check-icon ${isChecked ? 'active' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
-                                        </div>
-                                    </div>
+                        <div class="workout-card rounded-3xl p-5 animate-item relative" style="animation-delay: ${delay}s" onclick="openExerciseModal('${currentDay}', ${index})">
+                            
+                            <!-- Petit badge indication pour le clic -->
+                            <div class="absolute -top-2.5 left-5 bg-zinc-800 border border-white/10 text-[8px] font-bold text-white uppercase tracking-widest px-2 py-0.5 rounded-full shadow-lg">
+                                Voir détails
+                            </div>
+
+                            <div class="flex items-start justify-between mt-1">
+                                <div class="flex-1 pr-2">
+                                    <h3 class="font-bold text-white text-lg tracking-tight">${exo.name}</h3>
+                                    <span class="inline-block bg-white/10 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mt-2 border border-white/10">${exo.work}</span>
                                 </div>
-                                <p class="text-xs text-zinc-300 mt-4 leading-relaxed">${exo.desc}</p>
-                                <div class="flex gap-5 mt-4 pt-4 border-t border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
-                                    <div>Séries: <span class="text-white">${exo.reps}</span></div>
-                                    <div>Repos: <span class="text-white">${exo.rest}</span></div>
+                                
+                                <!-- Zone de clic exclusive pour la case à cocher -->
+                                <div class="check-hitbox" onclick="event.stopPropagation(); toggleCheck('${exo.name}')">
+                                    <div class="w-8 h-8 rounded-full border-2 transition-all duration-300 flex items-center justify-center ${isChecked ? 'bg-white border-white shadow-[0_0_10px_rgba(255,255,255,0.4)]' : 'bg-zinc-900 border-zinc-500'}">
+                                        <svg class="w-4 h-4 text-black check-icon ${isChecked ? 'active' : 'hidden'}" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                                    </div>
                                 </div>
                             </div>
-                        </label>
+                            <p class="text-xs text-zinc-300 mt-4 leading-relaxed line-clamp-2 opacity-80">${exo.desc}</p>
+                            <div class="flex gap-5 mt-4 pt-4 border-t border-white/10 text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                                <div>Séries: <span class="text-white">${exo.reps}</span></div>
+                                <div>Repos: <span class="text-white">${exo.rest}</span></div>
+                            </div>
+                        </div>
                     `;
                 });
                 exosHtml += `</div>`;
@@ -422,27 +634,23 @@
                     </div>
                 `;
 
-                // CRÉATION DES BLOCS IMBRIQUÉS (Midi + Soir dans la même carte)
                 Object.keys(menuSemaine.daysMeals).forEach(dayLabel => {
                     const meals = menuSemaine.daysMeals[dayLabel];
                     nutHtml += `
                         <div class="glass-card rounded-3xl p-5 border-white/10">
-                            <div class="border-b border-white/10 pb-3 mb-4">
+                            <div class="border-b border-white/10 pb-3 mb-4 flex justify-between items-center">
                                 <h3 class="font-black text-white text-sm tracking-wide uppercase">${dayLabel}</h3>
-                                <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1 block">Midi & Soir</span>
+                                <span class="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Batch Cooking</span>
                             </div>
                             
                             <div class="space-y-4">
-                                <!-- BLOC MIDI -->
                                 <div class="bg-zinc-900/50 rounded-2xl p-4 border border-white/5">
-                                    <span class="inline-block bg-white text-black font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mb-2">☀️ Midi</span>
+                                    <span class="inline-block bg-white text-black font-black text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 shadow-[0_0_10px_rgba(255,255,255,0.2)]">☀️ Midi</span>
                                     <p class="text-sm font-bold text-white">${meals.midi.split(' (')[0]}</p>
                                     <p class="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">${meals.midi.includes(' (') ? meals.midi.split(' (')[1].replace(')', '') : ''}</p>
                                 </div>
-                                
-                                <!-- BLOC SOIR -->
                                 <div class="bg-zinc-900/50 rounded-2xl p-4 border border-white/5">
-                                    <span class="inline-block bg-zinc-800 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mb-2">🌙 Soir</span>
+                                    <span class="inline-block bg-zinc-800 text-white font-bold text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-md mb-2 border border-white/10">🌙 Soir</span>
                                     <p class="text-sm font-bold text-white">${meals.soir.split(' (')[0]}</p>
                                     <p class="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">${meals.soir.includes(' (') ? meals.soir.split(' (')[1].replace(')', '') : ''}</p>
                                 </div>
@@ -498,14 +706,11 @@
 
             } else if (currentTab === 'profil') {
                 if (!isEditingProfile) {
-                    // VUE 1 : RÉCAPITULATIF PROPRE (Par défaut)
                     content.innerHTML = `
                         <div class="space-y-4 pb-4 animate-item">
                             <div class="glass-card rounded-3xl p-6 bg-gradient-to-br from-zinc-950 to-black border-white/10 relative overflow-hidden">
                                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-[40px]"></div>
-                                
                                 <h2 class="font-bold text-[10px] text-zinc-400 uppercase tracking-widest border-b border-white/5 pb-3 mb-6 relative z-10">Fiche Physique Actuelle</h2>
-                                
                                 <div class="grid grid-cols-3 gap-3 text-center relative z-10">
                                     <div class="bg-zinc-900/80 p-4 rounded-2xl border border-white/5">
                                         <span class="text-[9px] font-bold text-zinc-500 uppercase tracking-wider block mb-1">Âge</span>
@@ -524,7 +729,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <button onclick="isEditingProfile = true; render();" class="w-full glass-card hover:bg-white/5 text-white font-bold text-[10px] uppercase tracking-widest py-4 rounded-2xl transition-all flex justify-center items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 Modifier mes informations
@@ -532,7 +736,6 @@
                         </div>
                     `;
                 } else {
-                    // VUE 2 : FORMULAIRE DE MODIFICATION (Au clic)
                     content.innerHTML = `
                         <div class="space-y-4 pb-4 animate-item">
                             <div class="glass-card rounded-3xl p-6 space-y-4 border-white/10">
@@ -540,7 +743,6 @@
                                     <h2 class="font-bold text-[10px] text-zinc-400 uppercase tracking-widest">Modifier mes données</h2>
                                     <button onclick="isEditingProfile = false; render();" class="text-[10px] text-zinc-500 hover:text-white uppercase font-bold tracking-widest transition-colors">Annuler</button>
                                 </div>
-                                
                                 <div class="space-y-4 pt-2">
                                     <div>
                                         <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 pl-1">Âge</label>
@@ -554,7 +756,6 @@
                                         <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 pl-1">Poids (kg)</label>
                                         <input type="number" id="p-weight" value="${state.profile.weight}" class="w-full bg-zinc-900 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white focus:outline-none focus:border-white transition-colors" placeholder="Ex: 60">
                                     </div>
-                                    
                                     <button onclick="saveProfile()" class="w-full bg-white text-black font-black text-xs uppercase tracking-widest py-4 rounded-2xl mt-4 hover:scale-[1.02] transition-transform shadow-[0_5px_20px_rgba(255,255,255,0.1)]">
                                         Sauvegarder
                                     </button>
@@ -579,7 +780,7 @@
 
             state.profile = { age, height, weight };
             saveData();
-            isEditingProfile = false; // Repasse sur la vue Récapitulative
+            isEditingProfile = false;
             render(); 
             showToast("Profil mis à jour");
         }
